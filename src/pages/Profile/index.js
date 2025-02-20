@@ -37,7 +37,6 @@ const Profile = () => {
     setLoading(false);
   };
 
-  // Gọi API để cập nhật thông tin cá nhân
   const handleInfoUpdate = async (values) => {
     setUpdateLoading(true);
     try {
