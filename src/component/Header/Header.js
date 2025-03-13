@@ -104,7 +104,7 @@ const Header = () => {
                         className={link.class}
                         style={{ color: "#ffffff" }}
                         onClick={(e) => {
-                          window.location.href = "/";
+                          // window.location.href = "/";
                           dispatch(ShowSidebarMenu(false));
                         }}
                       >

@@ -1,4 +1,3 @@
-// Import thư viện và URL cơ bản
 import axios from "axios";
 
 const API_URL = `${process.env.REACT_APP_API_URL}`;
@@ -15,7 +14,7 @@ export const getAllBookings = async (page, limit, search = "") => {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.data.payload;
+    return response.data.payload; // Return payload from API response
   } catch (error) {
     console.error("Error fetching bookings:", error);
     return {
@@ -34,13 +33,13 @@ export const createBooking = async (bookingData) => {
     const response = await axios.post(`${API_URL}/booking`, bookingData, {
       headers: {
         Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+        "Content-Type": "application/json",
       },
     });
-    return response.data;
+    return response.data; // Return API response data
   } catch (error) {
     console.error("Error creating booking:", error);
-    throw error;
+    throw error; // Rethrow error to handle it in the component
   }
 };
 
@@ -58,10 +57,10 @@ export const changeStatusBooking = async (bookingId, status) => {
         },
       }
     );
-    return response.data;
+    return response.data; // Return API response data
   } catch (error) {
     console.error("Error changing booking status:", error);
-    throw error;
+    throw error; // Rethrow error to handle it in the component
   }
 };
 
@@ -74,10 +73,10 @@ export const getBookingById = async (bookingId) => {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.data.payload;
+    return response.data.payload; // Return payload from API response
   } catch (error) {
     console.error("Error fetching booking by ID:", error);
-    throw error;
+    throw error; // Rethrow error to handle it in the component
   }
 };
 
@@ -95,10 +94,10 @@ export const sendCustomerEmail = async (bookingId) => {
         },
       }
     );
-    return response.data;
+    return response.data; // Return API response data
   } catch (error) {
     console.error("Error sending customer email:", error);
-    throw error;
+    throw error; // Rethrow error to handle it in the component
   }
 };
 
@@ -116,12 +115,13 @@ export const sendStaffEmail = async (bookingId) => {
         },
       }
     );
-    return response.data;
+    return response.data; // Return API response data
   } catch (error) {
     console.error("Error sending staff email:", error);
-    throw error;
+    throw error; // Rethrow error to handle it in the component
   }
 };
+
 // API hủy booking nếu trạng thái là pending
 export const cancelBooking = async (bookingId) => {
   try {
@@ -136,10 +136,10 @@ export const cancelBooking = async (bookingId) => {
         },
       }
     );
-    return response.data;
+    return response.data; // Return API response data
   } catch (error) {
     console.error("Error canceling booking:", error);
-    throw error;
+    throw error; // Rethrow error to handle it in the component
   }
 };
 
@@ -153,7 +153,7 @@ export const getBookingByUserId = async (userId, page = 1, limit = 10) => {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.data.payload;
+    return response.data.payload; // Return payload from API response
   } catch (error) {
     console.error("Error fetching booking history by user ID:", error);
     return {

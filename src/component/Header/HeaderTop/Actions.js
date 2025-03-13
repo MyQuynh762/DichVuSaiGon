@@ -51,11 +51,7 @@ const Actions = () => {
               }}
             >
               <BsHeart />
-              {wishlist.wishlist.length > 0 && (
-                <sup style={{ fontSize: "14px" }}>
-                  {wishlist.wishlist.length}
-                </sup>
-              )}
+
             </Link>
           </li>
           {user && (
@@ -151,7 +147,7 @@ const Actions = () => {
                         Dịch vụ yêu thích
                       </a>
                     </li>
-                    <li
+                    {/* <li
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -169,7 +165,7 @@ const Actions = () => {
                       >
                         Nhân viên yêu thích
                       </a>
-                    </li>
+                    </li> */}
                   </motion.ul>
                 )}
               </AnimatePresence>
@@ -181,14 +177,13 @@ const Actions = () => {
         style={{ display: "flex", alignItems: "center", marginLeft: "20px" }}
       >
         <div>
-          {user && user.avatar ? (
+          {user && user.fullName ? (
             <Link to="/profile">
               <img
                 src={
-                  user.avatar ||
                   "https://i.pinimg.com/originals/94/e4/cb/94e4cb5ae194975f6dc84d1495c3abcd.gif"
                 }
-                alt={user.name}
+                alt={user.fullName}
                 style={{
                   width: "40px",
                   height: "40px",
@@ -215,12 +210,12 @@ const Actions = () => {
           )}
         </div>
         <div>
-          {user && user.name ? (
+          {user && user.fullName ? (
             <>
               <span
                 style={{
                   fontWeight: "bold",
-                  maxWidth: "150px",
+                  maxWidth: "200px",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -228,7 +223,7 @@ const Actions = () => {
                   fontSize: "16px",
                 }}
               >
-                {user.name}
+                {user.fullName}
               </span>
               <button
                 onClick={handleLogout}

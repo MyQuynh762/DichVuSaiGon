@@ -29,7 +29,7 @@ const WishList = () => {
   return (
     <div style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}>
       <Title level={2} style={{ textAlign: "center", color: "#ff6f3c" }}>
-        Dịch vụ yêu thích
+        Danh sách yêu thích
       </Title>
 
       <Divider />
@@ -50,8 +50,8 @@ const WishList = () => {
                   }
                   cover={
                     <img
-                      alt={item.serviceName}
-                      src={item.images[0]}
+                      alt={item.title}
+                      src={item.serviceImages[0]}
                       style={{ height: "200px", objectFit: "cover" }}
                     />
                   }
@@ -75,11 +75,11 @@ const WishList = () => {
                   }}
                 >
                   <Title level={5} style={{ marginBottom: "10px" }}>
-                    {item.serviceName}
+                    {item.title}
                   </Title>
-                  <Text>{item.shortDescription}</Text>
+                  <Text>{item.shortDescription.slice(0, 60) + "..."}</Text>
                   <Divider />
-                  <Text strong>{formatCurrency(item.basePrice)}</Text>
+                  <Text strong>{formatCurrency(item.avgPrice)}</Text>
                 </Card>
               </Col>
             ))}

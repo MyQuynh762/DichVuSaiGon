@@ -2,100 +2,169 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllServices } from "../../services/serviceService";
 import { getAllCategories } from "../../services/categoryService";
-import { Pagination, List, Button, Card, message } from "antd";
+import { getAllStores } from "../../services/storeService"; // Import getAllStores
+import { Pagination, List, Button, Card, message, Input, Select, Col, Row } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart as faSolidHeart } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
 import { formatCurrency } from "../../utils/formatCurrency";
 import { useNavigate } from "react-router-dom";
-import { AddToWishlist } from "../../redux/actions/wishlistActions"; // Import action để thêm vào wishlist
+import { AddToWishlist } from "../../redux/actions/wishlistActions";
+import { DeleteOutlined } from '@ant-design/icons';
+import { getProvinces, getDistricts, getWards } from "../../services/addressService";
+
 
 const { Meta } = Card;
 
 function ListService() {
-  const services = [
-    {
-      _id: "1",
-      serviceName: "Sửa máy lạnh",
-      shortDescription: "Dịch vụ sửa chữa và bảo dưỡng máy lạnh tại nhà.",
-      basePrice: 300000,
-      images: ["https://i.pinimg.com/736x/6b/98/af/6b98afbc476469c994e265b370a47c85.jpg"],
-    },
-    {
-      _id: "2",
-      serviceName: "Dạy tiếng Anh",
-      shortDescription: "Gia sư tiếng Anh cho trẻ em và người lớn theo giờ tại nhà hoặc online.",
-      basePrice: 500000,
-      images: ["https://i.pinimg.com/736x/c0/dd/57/c0dd57783ed27510197f61ec2b3bdace.jpg"],
-    },
-    {
-      _id: "3",
-      serviceName: "Làm nail",
-      shortDescription: "Chăm sóc móng chuyên nghiệp, trang trí sáng tạo.",
-      basePrice: 200000,
-      images: ["https://i.pinimg.com/736x/e7/a1/53/e7a153819fb9bda4319cad0d468c1bf9.jpg"],
-    },
-    {
-      _id: "4",
-      serviceName: "Cắt tóc nam",
-      shortDescription: "Tạo kiểu tóc nam thời thượng, chuyên nghiệp uốn, nhuộm, v.v.",
-      basePrice: 150000,
-      images: ["https://i.pinimg.com/736x/3c/60/06/3c600668fcfcff6544e52058176c3835.jpg"],
-    },
-    {
-      _id: "5",
-      serviceName: "Vệ sinh máy giặt",
-      shortDescription: "Làm sạch, bảo trì máy giặt giúp tăng tuổi thọ thiết bị.",
-      basePrice: 350000,
-      images: ["https://i.pinimg.com/736x/1a/25/97/1a2597586cb9c6663281d1a503f3631d.jpg"],
-    },
-    {
-      _id: "6",
-      serviceName: "Massage thư giãn",
-      shortDescription: "Dịch vụ massage tại nhà giúp giảm căng thẳng, mệt mỏi.",
-      basePrice: 600000,
-      images: ["https://i.pinimg.com/736x/54/a7/f2/54a7f238c63dd1da7dc53b7789a74685.jpg"],
-    },
-  ];
-  const [totalServices, setTotalServices] = useState(0);
+  const [categories, setCategories] = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [filteredServices, setFilteredServices] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalServices, setTotalServices] = useState(0);
   const [pageSize, setPageSize] = useState(6);
+  const [search, setSearch] = useState("");
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [wards, setWards] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedProvinceCode, setSelectedProvinceCode] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedWard, setSelectedWard] = useState("");
+  const [selectedStores, setSelectedStores] = useState([]);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const categories = [
-    { _id: 1, categoryName: "Ăn uống", images: "https://i.pinimg.com/736x/3b/28/f7/3b28f790c3932f5e9e0ba8d4d55f6722.jpg", link: "/list-service?category=an-uong" },
-    { _id: 2, categoryName: "Làm đẹp", images: "https://i.pinimg.com/736x/9a/37/cc/9a37cc95aa4f26ef809e09467bd435ba.jpg", link: "/list-service?category=lam-dep" },
-    { _id: 3, categoryName: "Sửa chữa", images: "https://i.pinimg.com/736x/ba/ba/fc/babafc9df4d4f81540a6dc7d99e3b3b7.jpg", link: "/list-service?category=sua-chua" },
-    { _id: 4, categoryName: "Thời trang", images: "https://i.pinimg.com/736x/77/43/ac/7743acc9dd9a6e3a7f7e80b1b4972d7c.jpg", link: "/list-service?category=thoi-trang" },
-    { _id: 5, categoryName: "Sức khỏe", images: "https://i.pinimg.com/736x/4b/a1/0d/4ba10dac34af987354c8a68785e9d5b0.jpg", link: "/list-service?category=suc-khoe" },
-    { _id: 6, categoryName: "Giáo dục", images: "https://i.pinimg.com/736x/f4/9f/6c/f49f6c089c0f506a8630ea06cd98c563.jpg", link: "/list-service?category=giao-duc" },
-  ];
-  // Lấy danh sách wishlist từ Redux để kiểm tra xem sản phẩm đã có trong wishlist chưa
+
   const wishlist = useSelector((state) => state.wishlist.wishlist);
 
+  // Fetch initial data: categories, provinces, stores
   useEffect(() => {
-    fetchServices();
+    const fetchCategories = async () => {
+      const data = await getAllCategories();
+      setCategories(data.categories || []);
+    };
+
+    const fetchProvinces = async () => {
+      const data = await getProvinces();
+      setProvinces(data || []);
+    };
+
+    const fetchStores = async () => {
+      const data = await getAllStores();
+      setStores(data.stores || []);
+    };
+
+    fetchCategories();
+    fetchProvinces();
+    fetchStores();
   }, []);
 
-  const fetchServices = async (categoryId = "", page = 1) => {
-    setTotalServices(services.length || 0);
-    setCurrentPage(1 || 1);
+  // Fetch services and apply filters
+  useEffect(() => {
+    fetchServices();
+  }, [
+    selectedCategory,
+    search,
+    selectedProvince,
+    selectedDistrict,
+    selectedWard,
+    selectedStores,
+  ]);
+
+  const fetchServices = async () => {
+    setLoading(true);
+    const storeId = selectedStores;
+    // Tạo chuỗi địa chỉ tìm kiếm theo tỉnh, quận, phường
+    const storeAddressSearch = [selectedWard, selectedDistrict, selectedProvince]
+      .filter(Boolean)
+      .join(', ');
+
+    const data = await getAllServices(
+      1, // Page 1
+      1000, // Không phân trang ở backend, lấy toàn bộ
+      search,
+      selectedCategory,
+      storeAddressSearch, // Truyền vào chuỗi địa chỉ tìm kiếm
+      storeId
+    );
+
+    const allServices = data.services || [];
+    setTotalServices(allServices.length);  // Set total services count
+
+    // Filter services based on the selected filters
+    let filteredData = [...allServices];
+
+    // Filter by search
+    if (search) {
+      filteredData = filteredData.filter((service) =>
+        service.title.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Filter by category
+    if (selectedCategory) {
+      filteredData = filteredData.filter(
+        (service) => service.categoryId === selectedCategory
+      );
+    }
+
+    // Filter by store selection
+    if (selectedStores?.length > 0) {
+      filteredData = filteredData.filter((service) =>
+        service.storeIds.some(store => selectedStores.includes(store._id))
+      );
+    }
+
+    // Filter by store address (province, district, and ward)
+    if (storeAddressSearch) {
+      filteredData = filteredData.filter(service => {
+        return service.storeIds.some(store => {
+          return store.storeAddress.toLowerCase().includes(storeAddressSearch.toLowerCase());
+        });
+      });
+    }
+
+    setFilteredServices(filteredData);
+    setTotalServices(filteredData.length);
+    setLoading(false);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   const handleCategorySelect = (categoryId) => {
     setSelectedCategory(categoryId);
-    fetchServices(categoryId);
   };
 
-  const handlePageChange = (page, pageSize) => {
-    setCurrentPage(page);
-    fetchServices(selectedCategory, page);
+  const handleProvinceChange = async (provinceName) => {
+    const selectedProvince = provinces.find((province) => province.name === provinceName);
+    setSelectedProvince(provinceName); // Cập nhật tỉnh
+    setSelectedProvinceCode(selectedProvince.code); // Lưu mã tỉnh để lọc
+    setDistricts([]); // Reset các quận/huyện khi tỉnh thay đổi
+    setWards([]); // Reset các phường/xã khi tỉnh thay đổi
+    const districts = await getDistricts(selectedProvince.code); // Fetch các quận/huyện cho tỉnh
+    setDistricts(districts || []);
+  };
+
+  const handleDistrictChange = async (districtCode) => {
+    const selectedDistrict = districts.find(district => district.code === districtCode);
+    setSelectedDistrict(selectedDistrict ? selectedDistrict.name : ''); // Cập nhật quận/huyện
+    setWards([]); // Reset phường/xã khi quận thay đổi
+    const wards = await getWards(districtCode); // Fetch các phường/xã cho quận
+    setWards(wards || []);
+  };
+
+  const handleWardChange = (wardCode) => {
+    const selectedWard = wards.find(ward => ward.code === wardCode);
+    setSelectedWard(selectedWard ? selectedWard.name : ''); // Cập nhật phường/xã
   };
 
   const handleAddToWishlist = (service) => {
-    // Kiểm tra với `service._id` thay vì `service.id`
     if (!wishlist.find((item) => item._id === service._id)) {
       dispatch(AddToWishlist(service));
       message.success("Đã thêm vào danh sách yêu thích!");
@@ -104,27 +173,37 @@ function ListService() {
     }
   };
 
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+
+  const handleStoreChange = (storeIds) => {
+    setSelectedStores(storeIds);
+  };
+
+  const clearFilters = () => {
+    setSelectedProvince("");
+    setSelectedDistrict("");
+    setSelectedWard("");
+    setSearch("");
+    setSelectedStores([]);
+  };
+
+  // Pagination logic
+  const paginatedServices = filteredServices.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   return (
-    <div
-      className="container"
-      style={{ marginTop: "20px", marginBottom: "20px" }}
-    >
-      <div
-        className="main-form"
-        style={{ display: "flex", gap: "20px", padding: "0 40px" }}
-      >
-        {/* SideBar */}
+    <div className="container" style={{ marginTop: "20px", marginBottom: "20px" }}>
+      <div className="main-form" style={{ display: "flex", gap: "20px", padding: "0 40px" }}>
+        {/* Sidebar with Filters */}
         <div className="sidebar" style={{ width: "20%" }}>
-          <h3 style={{ fontWeight: "bold", fontSize: "18px", color: "#333" }}>
-            Các loại dịch vụ
-          </h3>
+          <h3 style={{ fontWeight: "bold", fontSize: "18px", color: "#FF6F3C" }}>Các loại dịch vụ</h3>
           <ul style={{ listStyle: "none", padding: 0 }}>
             <li
-              style={{
-                padding: "10px 0",
-                cursor: "pointer",
-                fontWeight: selectedCategory ? "normal" : "bold",
-              }}
+              style={{ padding: "10px 0", cursor: "pointer", fontWeight: selectedCategory ? "normal" : "bold" }}
               onClick={() => handleCategorySelect("")}
             >
               Tất cả dịch vụ
@@ -132,93 +211,169 @@ function ListService() {
             {categories.map((category) => (
               <li
                 key={category._id}
-                style={{
-                  padding: "10px 0",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
+                style={{ padding: "10px 0", cursor: "pointer", display: "flex", alignItems: "center" }}
                 onClick={() => handleCategorySelect(category._id)}
               >
                 <img
                   src={category.images}
                   alt={category.categoryName}
-                  style={{
-                    width: "30px",
-                    height: "30px",
-                    borderRadius: "5px",
-                    marginRight: "10px",
-                  }}
+                  style={{ width: "30px", height: "30px", borderRadius: "5px", marginRight: "10px" }}
                 />
-                <span
-                  style={{
-                    fontWeight:
-                      selectedCategory === category._id ? "bold" : "normal",
-                  }}
-                >
+                <span style={{ fontWeight: selectedCategory === category._id ? "bold" : "normal" }}>
                   {category.categoryName}
                 </span>
               </li>
             ))}
           </ul>
+
+          {/* Filter by Location */}
+          <div style={{ marginTop: "20px" }}>
+            <h3 style={{ fontWeight: "bold", fontSize: "18px", color: "#FF6F3C", marginBottom: "15px" }}>
+              Chọn địa điểm
+            </h3>
+
+            {/* Province Select */}
+            <div style={{ marginBottom: "15px" }}>
+              <label style={{ fontSize: "14px", color: "#555", display: "block", marginBottom: "5px" }}>Chọn tỉnh</label>
+              <Select
+                placeholder="Chọn tỉnh"
+                value={selectedProvince}
+                onChange={handleProvinceChange}
+                style={{ width: '100%', height: '40px' }}
+              >
+                {provinces.map((province) => (
+                  <Select.Option key={province.name} value={province.name}>
+                    {province.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+
+            {/* District Select */}
+            <div style={{ marginBottom: "15px" }}>
+              <label style={{ fontSize: "14px", color: "#555", display: "block", marginBottom: "5px" }}>Chọn quận/huyện</label>
+              <Select
+                placeholder="Chọn quận/huyện"
+                value={selectedDistrict}
+                onChange={handleDistrictChange}
+                style={{ width: '100%', height: '40px' }}
+                disabled={!selectedProvince}
+              >
+                {districts.map((district) => (
+                  <Select.Option key={district.code} value={district.code}>
+                    {district.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+
+            {/* Ward Select */}
+            <div style={{ marginBottom: "15px" }}>
+              <label style={{ fontSize: "14px", color: "#555", display: "block", marginBottom: "5px" }}>Chọn phường/xã</label>
+              <Select
+                placeholder="Chọn phường/xã"
+                value={selectedWard}
+                onChange={handleWardChange}
+                style={{ width: '100%', height: '40px' }}
+                disabled={!selectedDistrict}
+              >
+                {wards.map((ward) => (
+                  <Select.Option key={ward.code} value={ward.code}>
+                    {ward.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+
+            {/* Clear Filters Button */}
+            <Row>
+              <Col span={24}>
+                <Button
+                  onClick={clearFilters}
+                  style={{ width: '100%', height: '40px', marginTop: '10px' }}
+                  icon={<DeleteOutlined />}
+                >
+                  Xóa bộ lọc
+                </Button>
+              </Col>
+            </Row>
+          </div>
         </div>
 
         {/* Service List */}
         <div className="service-list" style={{ width: "80%" }}>
-          <h3 style={{ fontWeight: "bold", fontSize: "18px", color: "#333" }}>
-            Danh sách dịch vụ
-          </h3>
+          <h3 style={{ fontWeight: "bold", fontSize: "18px", color: "#FF6F3C" }}>Danh sách dịch vụ</h3>
+
+          <Row gutter={24} style={{ marginBottom: '20px' }}>
+            <Col span={12}>
+              <Input
+                placeholder="Tìm kiếm dịch vụ"
+                allowClear
+                value={search}
+                onChange={handleSearchChange}
+                style={{ width: '100%', height: '40px' }}
+              />
+            </Col>
+            <Col span={12}>
+              <Select
+                placeholder="Chọn cửa hàng"
+                value={selectedStores}
+                allowClear
+                onChange={handleStoreChange}
+                style={{ width: '100%', height: '40px' }}
+              >
+                {stores.map((store) => (
+                  <Select.Option key={store._id} value={store._id}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <img
+                        src={store.storeImages[0]} // Assuming category.categoryImage contains the image URL
+                        alt={store.storeName}
+                        style={{
+                          width: "30px", // Resize image to fit nicely
+                          height: "30px",
+                          borderRadius: "50%", // Optional: makes the image circular
+                          marginRight: "10px",
+                        }}
+                      />
+                      <span>{store.storeName}</span>
+                    </div>
+                  </Select.Option>
+                ))}
+              </Select>
+            </Col>
+          </Row>
           <List
             grid={{ gutter: 16, column: 3 }}
-            dataSource={services}
+            dataSource={paginatedServices}
             renderItem={(service) => {
-              // Kiểm tra dựa trên service._id để chỉ đổi màu cho từng mục
-              const isInWishlist = wishlist.some(
-                (item) => item._id === service._id
-              );
+              const isInWishlist = wishlist.some((item) => item._id === service._id);
               return (
                 <List.Item key={service._id}>
                   <Card
                     hoverable
-                    cover={
-                      <img
-                        alt={service.serviceName}
-                        src={service.images ? service.images[0] : ""}
-                        style={{ height: "180px", objectFit: "cover" }}
-                      />
-                    }
+                    cover={<img alt={service.title} src={service.serviceImages[0]} style={{ height: "180px", objectFit: "cover" }} />}
                     actions={[
                       <Button
                         type="primary"
-                        style={{
-                          backgroundColor: "#FF6F3C",
-                          borderColor: "#FF6F3C",
-                        }}
-                        onClick={() =>
-                          navigate("/hourly", { state: { service } })
-                        }
+                        onClick={() => navigate("/hourly", { state: { service } })}
+                        style={{ backgroundColor: "#FF6F3C", borderColor: "#FF6F3C" }}
                       >
                         Chi tiết dịch vụ
                       </Button>,
                       <FontAwesomeIcon
                         icon={isInWishlist ? faSolidHeart : faRegularHeart}
                         onClick={() => handleAddToWishlist(service)}
-                        style={{
-                          cursor: "pointer",
-                          color: isInWishlist ? "#FF6F3C" : "gray",
-                          fontSize: "24px", // Tăng kích thước lên
-                        }}
+                        style={{ cursor: "pointer", color: isInWishlist ? "#FF6F3C" : "gray", fontSize: "24px" }}
                       />,
                     ]}
                   >
                     <Meta
-                      title={service.serviceName}
+                      onClick={() => navigate("/hourly", { state: { service } })}
+                      title={service.title}
                       description={
                         <>
-                          <p>{service.shortDescription}</p>
-                          <p style={{ color: "#FF6F3C", fontWeight: "bold" }}>
-                            Giá dự tính: {formatCurrency(service.basePrice)}
-                          </p>
+                          <p>{service.shortDescription.slice(0, 60) + "..."}</p>
+                          <p style={{ color: "#FF6F3C", fontWeight: "bold" }}>Giá dự tính: {formatCurrency(service.avgPrice)}</p>
                         </>
                       }
                     />
@@ -226,8 +381,8 @@ function ListService() {
                 </List.Item>
               );
             }}
+            loading={loading}
           />
-
           <Pagination
             current={currentPage}
             pageSize={pageSize}

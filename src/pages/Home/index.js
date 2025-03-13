@@ -28,7 +28,7 @@ const Home = () => {
             <div className="row">
               <div className="col-12">
                 <div className="section-title">
-                  <h4>Các tiện ích nổi bật</h4>
+                  <h4>Các dịch vụ nổi bật</h4>
                 </div>
               </div>
             </div>

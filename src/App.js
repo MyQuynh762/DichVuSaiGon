@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Service from "./pages/Service";
 import Header from "./component/Header/Header";
 import Hourly from "./pages/Hourly/index";
+import StoreDetail from "./pages/StoreDetail/index";
 import ListService from "./pages/ServiceList/ListService";
 import Employee from "./pages/Employee/Employee";
 import Footer from "./pages/Footer/Footer";
@@ -19,6 +20,7 @@ import ProtectedRoute from "./component/ProtectedRoute"; // Import ProtectedRout
 import FavoriteStaff from "./pages/FavoriteStaff";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Store from "./pages/Store/Store";
 
 function App() {
   return (
@@ -37,6 +39,8 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/list-service" element={<ListService />} />
+            <Route path="/store" element={<Store />} />
+            <Route path="/store-detail" element={<StoreDetail />} />
             <Route path="/hourly" element={<Hourly />} />
             <Route path="/employee" element={<Employee />} />
             <Route path="/wishlist" element={<WishList />} />
@@ -69,14 +73,17 @@ function App() {
             <Route
               path="/booking-success/:bookingId"
               element={
-                <BookingSuccess />
+                <ProtectedRoute>
+                  <BookingSuccess />
+                </ProtectedRoute>
               }
             />
             <Route
               path="/service"
               element={
-
-                <Service />
+                <ProtectedRoute>
+                  <Service />
+                </ProtectedRoute>
               }
             />
           </Routes>

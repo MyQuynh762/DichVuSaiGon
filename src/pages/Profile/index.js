@@ -37,6 +37,7 @@ const Profile = () => {
     setLoading(false);
   };
 
+  // Gọi API để cập nhật thông tin cá nhân
   const handleInfoUpdate = async (values) => {
     setUpdateLoading(true);
     try {
@@ -65,7 +66,7 @@ const Profile = () => {
             <Form
               layout="vertical"
               initialValues={{
-                name: userInfo.name,
+                fullName: userInfo.fullName,
                 email: userInfo.email,
                 phone: userInfo.phone,
                 address: userInfo.address,
@@ -74,7 +75,7 @@ const Profile = () => {
               onFinish={handleInfoUpdate}
               style={{ maxWidth: "500px", margin: "0 auto" }}
             >
-              <Form.Item label="Họ và tên" name="name">
+              <Form.Item label="Họ và tên" name="fullName">
                 <Input style={{ height: "40px", borderColor: "#FF6F3C" }} />
               </Form.Item>
 

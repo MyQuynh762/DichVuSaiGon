@@ -8,16 +8,23 @@ import { getAllCategories } from "../../../services/categoryService";
 
 const Department = () => {
   const dispatch = useDispatch();
-  const categories = [
-    { _id: 1, categoryName: "Ăn uống", images: "https://i.pinimg.com/736x/3b/28/f7/3b28f790c3932f5e9e0ba8d4d55f6722.jpg", link: "/list-service?category=an-uong" },
-    { _id: 2, categoryName: "Làm đẹp", images: "https://i.pinimg.com/736x/9a/37/cc/9a37cc95aa4f26ef809e09467bd435ba.jpg", link: "/list-service?category=lam-dep" },
-    { _id: 3, categoryName: "Sửa chữa", images: "https://i.pinimg.com/736x/ba/ba/fc/babafc9df4d4f81540a6dc7d99e3b3b7.jpg", link: "/list-service?category=sua-chua" },
-    { _id: 4, categoryName: "Thời trang", images: "https://i.pinimg.com/736x/77/43/ac/7743acc9dd9a6e3a7f7e80b1b4972d7c.jpg", link: "/list-service?category=thoi-trang" },
-    { _id: 5, categoryName: "Sức khỏe", images: "https://i.pinimg.com/736x/4b/a1/0d/4ba10dac34af987354c8a68785e9d5b0.jpg", link: "/list-service?category=suc-khoe" },
-    { _id: 6, categoryName: "Giáo dục", images: "https://i.pinimg.com/736x/f4/9f/6c/f49f6c089c0f506a8630ea06cd98c563.jpg", link: "/list-service?category=giao-duc" },
-  ];
-  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getAllCategories(1, 1000);
+        setCategories(data.categories);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleCloseCategories = (e) => {
     dispatch(ShowSidebarCategories(false));

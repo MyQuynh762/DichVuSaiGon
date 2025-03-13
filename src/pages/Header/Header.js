@@ -268,7 +268,7 @@ const Header = () => {
                   <img
                     src={
                       user.avatar ||
-                      "https://i.pinimg.com/originals/44/de/bd/44debd48ce372377233888f8b8d95351.gif"
+                      "https://i.pinimg.com/originals/94/e4/cb/94e4cb5ae194975f6dc84d1495c3abcd.gif"
                     }
                     alt="avatar"
                     style={{

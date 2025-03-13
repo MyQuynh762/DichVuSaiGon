@@ -40,3 +40,39 @@ export const fetchWardsByDistrict = async (districtCode) => {
   }
 };
 
+// Hàm lấy danh sách các tỉnh
+export const getProvinces = async () => {
+  try {
+    const response = await axios.get(PROVINCE_API_URL);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching provinces:", error);
+    throw error;
+  }
+};
+
+// Hàm lấy danh sách các quận theo mã tỉnh
+export const getDistricts = async (provinceCode) => {
+  try {
+    const response = await axios.get(
+      `${PROVINCE_API_URL}${provinceCode}?depth=2`
+    );
+    return response.data.districts;
+  } catch (error) {
+    console.error("Error fetching districts:", error);
+    throw error;
+  }
+};
+
+// Hàm lấy danh sách các phường theo mã quận
+export const getWards = async (districtCode) => {
+  try {
+    const response = await axios.get(
+      `https://provinces.open-api.vn/api/d/${districtCode}?depth=2`
+    );
+    return response.data.wards;
+  } catch (error) {
+    console.error("Error fetching wards:", error);
+    throw error;
+  }
+};

@@ -51,73 +51,47 @@ function SamplePrevArrow(props) {
 }
 
 function SampleSlider() {
+  const [services, setServices] = useState([]);
   const navigate = useNavigate();
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
-  const services = [
-    {
-      _id: "1",
-      serviceName: "Sửa máy lạnh",
-      shortDescription: "Dịch vụ sửa chữa và bảo dưỡng máy lạnh tại nhà.",
-      basePrice: 300000,
-      images: ["https://i.pinimg.com/736x/6b/98/af/6b98afbc476469c994e265b370a47c85.jpg"],
-    },
-    {
-      _id: "2",
-      serviceName: "Dạy tiếng Anh",
-      shortDescription: "Gia sư tiếng Anh cho trẻ em và người lớn theo giờ tại nhà hoặc online.",
-      basePrice: 500000,
-      images: ["https://i.pinimg.com/736x/c0/dd/57/c0dd57783ed27510197f61ec2b3bdace.jpg"],
-    },
-    {
-      _id: "3",
-      serviceName: "Làm nail",
-      shortDescription: "Chăm sóc móng chuyên nghiệp, trang trí sáng tạo.",
-      basePrice: 200000,
-      images: ["https://i.pinimg.com/736x/e7/a1/53/e7a153819fb9bda4319cad0d468c1bf9.jpg"],
-    },
-    {
-      _id: "4",
-      serviceName: "Cắt tóc nam",
-      shortDescription: "Tạo kiểu tóc nam thời thượng, chuyên nghiệp uốn, nhuộm, v.v.",
-      basePrice: 150000,
-      images: ["https://i.pinimg.com/736x/3c/60/06/3c600668fcfcff6544e52058176c3835.jpg"],
-    },
-    {
-      _id: "5",
-      serviceName: "Vệ sinh máy giặt",
-      shortDescription: "Làm sạch, bảo trì máy giặt giúp tăng tuổi thọ thiết bị.",
-      basePrice: 350000,
-      images: ["https://i.pinimg.com/736x/1a/25/97/1a2597586cb9c6663281d1a503f3631d.jpg"],
-    },
-    {
-      _id: "6",
-      serviceName: "Massage thư giãn",
-      shortDescription: "Dịch vụ massage tại nhà giúp giảm căng thẳng, mệt mỏi.",
-      basePrice: 600000,
-      images: ["https://i.pinimg.com/736x/54/a7/f2/54a7f238c63dd1da7dc53b7789a74685.jpg"],
-    },
-  ];
 
+  useEffect(() => {
+    const fetchServices = async () => {
+      const response = await getAllServices(1, 10);
+      setServices(response.services || []);
+    };
+
+    fetchServices();
+  }, []);
 
   const handleBookingClick = (service) => {
-    navigate("/service", { state: { serviceId: service._id } });
+    if (!isAuthenticated) {
+      message.warning("Bạn cần đăng nhập để đặt dịch vụ.");
+      navigate("/login");
+    } else {
+      navigate("/service", { state: { serviceId: service._id } });
+    }
+  };
+
+  const handleDetailClick = (service) => {
+    navigate("/hourly", { state: { service } });
   };
 
   const settings = {
     dots: true,
     infinite: true,
     speed: 500,
-    slidesToShow: 3,
+    slidesToShow: 4,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 3000,
+    autoplaySpeed: 4000,
     pauseOnHover: false,
     nextArrow: <SampleNextArrow />,
     prevArrow: <SamplePrevArrow />,
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "10px" }}>
       <Slider {...settings}>
         {services.map((service) => (
           <div
@@ -138,7 +112,7 @@ function SampleSlider() {
               }}
             >
               <img
-                src={service.images[0]}
+                src={service.serviceImages[0]}
                 alt={service.serviceName}
                 style={{
                   width: "100%",
@@ -147,7 +121,7 @@ function SampleSlider() {
                   borderRadius: "10px",
                   cursor: "pointer",
                 }}
-                onClick={() => handleBookingClick(service)}
+                onClick={() => handleDetailClick(service)}
               />
               <div style={{ padding: "10px 0" }}>
                 <h3
@@ -157,9 +131,9 @@ function SampleSlider() {
                     color: "#333",
                     cursor: "pointer",
                   }}
-                  onClick={() => handleBookingClick(service)}
+                  onClick={() => handleDetailClick(service)}
                 >
-                  {service.serviceName}
+                  {service.title}
                 </h3>
                 <p style={{ color: "#888", fontSize: "14px", margin: "5px 0" }}>
                   {service.shortDescription.slice(0, 60) + "..."}
@@ -179,24 +153,43 @@ function SampleSlider() {
                     }}
                   >
                     <strong>Giá dự tính:</strong>{" "}
-                    {formatCurrency(service.basePrice)}
+                    {formatCurrency(service.avgPrice)}
                   </span>
                 </div>
-                <button
-                  style={{
-                    marginTop: "10px",
-                    padding: "10px 20px",
-                    backgroundColor: "#ff6f3c",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontSize: "16px",
-                  }}
-                  onClick={() => handleBookingClick(service)}
-                >
-                  Đặt Ngay
-                </button>
+                
+                {service.availableForBooking ? (
+                  <button
+                    style={{
+                      marginTop: "10px",
+                      padding: "10px 20px",
+                      backgroundColor: "#ff6f3c",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                      fontSize: "16px",
+                    }}
+                    onClick={() => handleBookingClick(service)}
+                  >
+                    Đặt Ngay
+                  </button>
+                ) : (
+                  <button
+                    style={{
+                      marginTop: "10px",
+                      padding: "10px 20px",
+                      backgroundColor: "#ff6f3c",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                      fontSize: "16px",
+                    }}
+                    onClick={() => handleDetailClick(service)}
+                  >
+                    Xem Chi Tiết
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -4,7 +4,6 @@ import {
   getBookingByUserId,
   cancelBooking,
 } from "../../services/bookingService";
-import { addFavoriteStaff } from "../../services/favoriteStaffService"; // Import the API function
 import { formatCurrency } from "../../utils/formatCurrency";
 import {
   Button,
@@ -30,7 +29,7 @@ import {
   HeartOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
-import { createFeedback } from "../../services/feedbackService";
+import { createReview } from "../../services/reviewService";
 
 const { Title, Text } = Typography;
 
@@ -41,7 +40,7 @@ const generateStatus = (status) => {
   switch (status) {
     case "pending":
       color = "#FFA500"; // Màu cam
-      displayText = "Đang chờ";
+      displayText = "Chờ xác nhận";
       break;
     case "approved":
       color = "#52C41A"; // Màu xanh lá cây
@@ -128,17 +127,15 @@ const BookingHistory = () => {
     setLoadingFeedback(true);
     try {
       const formData = new FormData();
-      formData.append("customerId", userId);
-      formData.append("serviceId", selectedBooking.serviceInfo._id);
-      formData.append("bookingId", selectedBooking._id);
-      formData.append("userId", selectedBooking.preferredStaffInfo._id);
+      formData.append("userId", userId);
+      formData.append("serviceId", selectedBooking.serviceId._id);
       formData.append("rating", feedbackData.rating);
       formData.append("comment", feedbackData.comment);
       feedbackData.images.forEach((file) => {
         formData.append("images", file.originFileObj);
       });
 
-      await createFeedback(formData);
+      await createReview(formData);
       message.success("Đánh giá dịch vụ thành công!");
       setIsFeedbackModalVisible(false);
       setFeedbackData({ rating: 0, comment: "", images: [] });
@@ -149,17 +146,6 @@ const BookingHistory = () => {
       setLoadingFeedback(false);
     }
   };
-
-  const handleAddFavoriteStaff = async (staffId) => {
-    try {
-      await addFavoriteStaff(userId, staffId);
-      message.success("Nhân viên đã được thêm vào danh sách yêu thích.");
-      fetchBookings();
-    } catch (error) {
-      message.error("Lỗi khi thêm nhân viên vào danh sách yêu thích.");
-    }
-  };
-
   const showCancelConfirm = (bookingId) => {
     Modal.confirm({
       title: "Xác nhận hủy đặt lịch",
@@ -208,8 +194,8 @@ const BookingHistory = () => {
             >
               <div style={{ display: "flex", gap: "20px" }}>
                 <img
-                  src={booking.serviceInfo?.images[0]}
-                  alt={booking.serviceInfo?.serviceName}
+                  src={booking.serviceId?.serviceImages[0]} // Lấy hình ảnh dịch vụ
+                  alt={booking.serviceId?.title} // Tiêu đề dịch vụ
                   style={{
                     width: "120px",
                     height: "120px",
@@ -219,29 +205,22 @@ const BookingHistory = () => {
                 />
                 <div style={{ flex: 1 }}>
                   <Title level={4} style={{ margin: 0, color: "#FF6F3C" }}>
-                    {booking.serviceInfo.serviceName}
+                    {booking.serviceId.title}
                   </Title>
                   <div style={{ marginTop: "10px", lineHeight: "24px" }}>
                     <EnvironmentOutlined style={{ color: "#1890ff" }} />{" "}
-                    <Text strong>Địa chỉ:</Text> {booking.customerAddress}
-                  </div>
-                  <div style={{ marginTop: "5px", lineHeight: "24px" }}>
-                    <UserOutlined style={{ color: "#1890ff" }} />{" "}
-                    <Text strong>Nhân viên:</Text>{" "}
-                    {booking.preferredStaffInfo
-                      ? booking.preferredStaffInfo.name
-                      : "Không có"}
+                    <Text strong>Địa chỉ:</Text> {booking.storeId?.storeAddress}
                   </div>
                   <div style={{ marginTop: "5px", lineHeight: "24px" }}>
                     <CalendarOutlined style={{ color: "#1890ff" }} />{" "}
                     <Text strong>Thời gian:</Text>{" "}
-                    {new Date(booking.bookingTime).toLocaleDateString("vi-VN")}{" "}
-                    {new Date(booking.bookingTime).toLocaleTimeString("vi-VN")}
+                    {new Date(booking.bookingDate).toLocaleDateString("vi-VN")}{" "} {/* Thời gian đặt lịch */}
+                    {new Date(booking.bookingDate).toLocaleTimeString("vi-VN")}
                   </div>
                   <div style={{ marginTop: "5px", lineHeight: "24px" }}>
                     <DollarOutlined style={{ color: "#1890ff" }} />{" "}
                     <Text strong>Chi phí dự tính:</Text>{" "}
-                    {formatCurrency(booking.totalCost)}
+                    {formatCurrency(booking.serviceId.avgPrice)} {/* Chi phí dự tính */}
                   </div>
                   <div style={{ marginTop: "5px" }}>
                     {generateStatus(booking?.status)}
@@ -279,24 +258,13 @@ const BookingHistory = () => {
                           Đánh giá dịch vụ
                         </Button>
                       )}
-                      {!booking.isFavorite && (
-                        <Button
-                          type="default"
-                          icon={<HeartOutlined />}
-                          onClick={() =>
-                            handleAddFavoriteStaff(
-                              booking.preferredStaffInfo._id
-                            )
-                          }
-                        >
-                          Thêm nhân viên vào danh sách yêu thích
-                        </Button>
-                      )}
+
                     </>
                   )}
                 </div>
               </div>
             </Card>
+
           );
         })
       )}

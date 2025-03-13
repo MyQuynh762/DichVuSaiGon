@@ -28,10 +28,10 @@ export const signUp = async (userData) => {
   }
 };
 
-export const registerStaff = async (formData) => {
+export const registerSupplier = async (formData) => {
   try {
     // Gọi API với FormData đã được truyền từ component
-    const response = await axios.post(`${API_URL}/register-staff`, formData, {
+    const response = await axios.post(`${API_URL}/register-supplier`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 const initFormValue = {
   name: "",
   email: "",
-  address: "",
   phone: "",
   password: "",
   confirmPassword: "",
@@ -32,9 +31,6 @@ function Register() {
       error["email"] = "Email là bắt buộc";
     } else if (!isEmailValid(formValue.email)) {
       error["email"] = "Email không hợp lệ";
-    }
-    if (isEmptyValue(formValue.address)) {
-      error["address"] = "Địa chỉ là bắt buộc";
     }
     if (isEmptyValue(formValue.phone)) {
       error["phone"] = "Số điện thoại là bắt buộc";
@@ -69,12 +65,12 @@ function Register() {
     event.preventDefault();
     if (validateForm()) {
       const newUser = {
-        name: formValue.name,
+        fullName: formValue.name,
         email: formValue.email,
         password: formValue.password,
         phone: formValue.phone,
-        address: formValue.address,
-        role: "customer",
+        avatar: "",
+        role: "customer", // Setting role as 'customer'
         active: true,
       };
 
@@ -140,8 +136,8 @@ function Register() {
                 {field === "name"
                   ? "Họ và Tên"
                   : field === "email"
-                  ? "Email"
-                  : "Số điện thoại"}
+                    ? "Email"
+                    : "Số điện thoại"}
               </label>
               <Input
                 id={field}
@@ -150,8 +146,8 @@ function Register() {
                   field === "name"
                     ? "Nhập họ và tên của bạn"
                     : field === "email"
-                    ? "Nhập email của bạn"
-                    : "Nhập số điện thoại của bạn"
+                      ? "Nhập email của bạn"
+                      : "Nhập số điện thoại của bạn"
                 }
                 value={formValue[field]}
                 onChange={handleChange}
@@ -170,47 +166,6 @@ function Register() {
               )}
             </div>
           ))}
-
-          {/* Địa chỉ - Select field */}
-          <div style={{ marginBottom: "15px" }}>
-            <label
-              htmlFor="address"
-              style={{
-                display: "block",
-                fontWeight: "bold",
-                marginBottom: "5px",
-              }}
-            >
-              Địa chỉ
-            </label>
-            <Select
-              id="address"
-              placeholder="Chọn địa chỉ"
-              value={formValue.address}
-              onChange={handleSelectChange}
-              style={{ width: "100%", height: "40px" }}
-              options={[
-                { value: "Hà Nội", label: "Hà Nội" },
-                { value: "Đà Nẵng", label: "Đà Nẵng" },
-                {
-                  value: "Thành phố Hồ Chí Minh",
-                  label: "Thành phố Hồ Chí Minh",
-                },
-              ]}
-            />
-            {formError.address && (
-              <div
-                style={{
-                  color: "#ff4d4f",
-                  fontSize: "12px",
-                  marginTop: "5px",
-                }}
-              >
-                {formError.address}
-              </div>
-            )}
-          </div>
-
           {["password", "confirmPassword"].map((field) => (
             <div style={{ marginBottom: "15px" }} key={field}>
               <label

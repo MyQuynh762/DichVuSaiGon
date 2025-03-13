@@ -16,7 +16,7 @@ function Procedure() {
     >
       <div style={{ marginBottom: "40px" }}>
         <h1 style={{ fontSize: "28px", color: "#333", fontWeight: "bold" }}>
-          Quy trình sử dụng dịch vụ
+          Quy trình đăng dịch vụ lên nền tảng
         </h1>
       </div>
 
@@ -73,10 +73,10 @@ function Procedure() {
                 marginBottom: "10px",
               }}
             >
-              Chọn dịch vụ
+              Đăng ký tài khoản cửa hàng
             </h3>
             <p style={{ fontSize: "16px", color: "#666", margin: 0 }}>
-              Chúng tôi có rất nhiều dịch vụ tiện ích sẵn sàng hỗ trợ bạn
+              Để bắt đầu, cửa hàng của bạn cần tạo một tài khoản và đăng ký trên nền tảng.
             </p>
           </div>
         </li>
@@ -124,10 +124,10 @@ function Procedure() {
                 marginBottom: "10px",
               }}
             >
-              Lựa chọn thời gian và địa điểm
+              Đăng tải dịch vụ và thông tin
             </h3>
             <p style={{ fontSize: "16px", color: "#666", margin: 0 }}>
-              Xác định ngày, giờ và địa điểm để trải nghiệm dịch vụ.
+              Thêm các dịch vụ của bạn, bao gồm mô tả, hình ảnh và giá cả, để khách hàng dễ dàng tìm thấy và chọn lựa.
             </p>
           </div>
         </li>
@@ -175,13 +175,12 @@ function Procedure() {
                 marginBottom: "10px",
               }}
             >
-              Khám phá & sử dụng dịch vụ
+              Xác nhận và kích hoạt dịch vụ
             </h3>
             <p style={{ fontSize: "16px", color: "#666", margin: 0 }}>
-              Lựa chọn dịch vụ phù hợp từ các danh mục nổi bật và tận hưởng trải nghiệm chất lượng từ những đơn vị cung cấp uy tín.
+              Sau khi dịch vụ đã được đăng tải, chúng tôi sẽ xác nhận và kích hoạt để khách hàng có thể dễ dàng đặt dịch vụ.
             </p>
           </div>
-
         </li>
 
         <li
@@ -227,10 +226,10 @@ function Procedure() {
                 marginBottom: "10px",
               }}
             >
-              Đánh giá và xếp hạng
+              Theo dõi và đánh giá dịch vụ
             </h3>
             <p style={{ fontSize: "16px", color: "#666", margin: 0 }}>
-              Bạn có thể đánh giá chất lượng dịch vụ thông qua hệ thống.
+              Quản lý các dịch vụ đã đăng và nhận phản hồi từ khách hàng để nâng cao chất lượng dịch vụ.
             </p>
           </div>
         </li>

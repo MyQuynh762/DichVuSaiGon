@@ -1,217 +1,95 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Button, message, Steps, DatePicker, Input, Select } from "antd";
+import { Button, message, Steps, DatePicker, Select, Checkbox, Card } from "antd";
 import { getAllServices } from "../../services/serviceService";
-import { getAllStaffByServiceId } from "../../services/userService";
-import {
-  fetchDistrictsByProvince,
-  fetchWardsByDistrict,
-} from "../../services/addressService";
-import { createBooking } from "../../services/bookingService";
+import { createBooking } from "../../services/bookingService"; // Import API createBooking
 import dayjs from "dayjs";
 import { useLocation, useNavigate } from "react-router-dom";
 import { formatCurrency } from "../../utils/formatCurrency";
 
-const { Step } = Steps;
-
 const App = () => {
   const location = useLocation();
+  const user = useSelector((state) => state.user.userInfo);
   const serviceId = location.state?.serviceId;
   const [current, setCurrent] = useState(0);
-  const services = [
-    {
-      _id: "1",
-      serviceName: "Sửa máy lạnh",
-      shortDescription: "Dịch vụ sửa chữa và bảo dưỡng máy lạnh tại nhà.",
-      basePrice: 300000,
-      images: ["https://i.pinimg.com/736x/6b/98/af/6b98afbc476469c994e265b370a47c85.jpg"],
-    },
-    {
-      _id: "2",
-      serviceName: "Dạy tiếng Anh",
-      shortDescription: "Gia sư tiếng Anh cho trẻ em và người lớn theo giờ tại nhà hoặc online.",
-      basePrice: 500000,
-      images: ["https://i.pinimg.com/736x/c0/dd/57/c0dd57783ed27510197f61ec2b3bdace.jpg"],
-    },
-    {
-      _id: "3",
-      serviceName: "Làm nail",
-      shortDescription: "Chăm sóc móng chuyên nghiệp, trang trí sáng tạo.",
-      basePrice: 200000,
-      images: ["https://i.pinimg.com/736x/e7/a1/53/e7a153819fb9bda4319cad0d468c1bf9.jpg"],
-    },
-    {
-      _id: "4",
-      serviceName: "Cắt tóc nam",
-      shortDescription: "Tạo kiểu tóc nam thời thượng, chuyên nghiệp uốn, nhuộm, v.v.",
-      basePrice: 150000,
-      images: ["https://i.pinimg.com/736x/3c/60/06/3c600668fcfcff6544e52058176c3835.jpg"],
-    },
-    {
-      _id: "5",
-      serviceName: "Vệ sinh máy giặt",
-      shortDescription: "Làm sạch, bảo trì máy giặt giúp tăng tuổi thọ thiết bị.",
-      basePrice: 350000,
-      images: ["https://i.pinimg.com/736x/1a/25/97/1a2597586cb9c6663281d1a503f3631d.jpg"],
-    },
-    {
-      _id: "6",
-      serviceName: "Massage thư giãn",
-      shortDescription: "Dịch vụ massage tại nhà giúp giảm căng thẳng, mệt mỏi.",
-      basePrice: 600000,
-      images: ["https://i.pinimg.com/736x/54/a7/f2/54a7f238c63dd1da7dc53b7789a74685.jpg"],
-    },
-  ];
+  const [services, setServices] = useState([]);
   const [selectedService, setSelectedService] = useState(serviceId);
-  const [staffList, setStaffList] = useState([]);
-  const [selectedStaff, setSelectedStaff] = useState(null);
-  const [districts, setDistricts] = useState([]);
-  const [wards, setWards] = useState([]);
-  const [selectedCity, setSelectedCity] = useState(null);
-  const [selectedCityName, setSelectedCityName] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
-  const [selectedDistrictName, setSelectedDistrictName] = useState("");
-  const [selectedWard, setSelectedWard] = useState(null);
-  const [selectedWardName, setSelectedWardName] = useState("");
-  const [street, setStreet] = useState("");
   const [selectedDateTime, setSelectedDateTime] = useState(null);
+  const [selectedStore, setSelectedStore] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const user = useSelector((state) => state.user.userInfo);
+  const [storeOptions, setStoreOptions] = useState([]); // Stores related to the selected service
+  const [isChecked, setIsChecked] = useState(false); // Checkbox state
   const navigate = useNavigate();
 
-  const cities = [
-    { value: "01", label: "Hà Nội" },
-    { value: "48", label: "Đà Nẵng" },
-    { value: "79", label: "Hồ Chí Minh" },
-  ];
+  // Fetch services data
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const data = await getAllServices(1, 100);
+        const availableServices = data.services.filter(service => service.availableForBooking);
+        setServices(availableServices || []);
+        if (serviceId) {
+          const selectedService = availableServices.find(service => service._id === serviceId);
+          if (selectedService && selectedService.storeIds) {
+            setStoreOptions(selectedService.storeIds); // Set storeIds based on the selected service
+            setSelectedService(selectedService._id);
+          }
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy dịch vụ:", error);
+        message.error("Không thể tải danh sách dịch vụ.");
+      }
+    };
+    fetchServices();
+  }, [serviceId]);
 
-  // useEffect(() => {
-  //   const fetchServices = async () => {
-  //     try {
-  //       const data = await getAllServices(1, 100);
-  //       setServices(data.services || []);
-  //     } catch (error) {
-  //       console.error("Lỗi khi lấy dịch vụ:", error);
-  //       message.error("Không thể tải danh sách dịch vụ.");
-  //     }
-  //   };
-  //   fetchServices();
-  // }, [serviceId]);
-
+  // Handle service change and update store options based on the selected service
   const handleServiceChange = (serviceId) => {
     setSelectedService(serviceId);
-    setSelectedStaff(null);
-  };
-
-  const handleFetchStaff = async () => {
-    try {
-      if (!selectedDateTime) {
-        message.warning("Vui lòng chọn thời gian trước khi tiếp tục.");
-        return;
-      }
-      const bookingTime = selectedDateTime.toISOString();
-
-      if (!user?._id) {
-        message.warning("Không tìm thấy thông tin người dùng.");
-        return;
-      }
-
-      const data = await getAllStaffByServiceId(
-        selectedService,
-        bookingTime,
-        user._id,
-        selectedCityName
-      );
-      setStaffList(data || []);
-      setCurrent(current + 1);
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách nhân viên:", error);
-      message.error("Không thể tải danh sách nhân viên.");
+    const selectedService = services.find(service => service._id === serviceId);
+    if (selectedService && selectedService.storeIds) {
+      setStoreOptions(selectedService.storeIds); // Set store options based on the selected service
     }
   };
 
-  const handleCityChange = async (cityCode) => {
-    setSelectedCity(cityCode);
-    const city = cities.find((c) => c.value === cityCode);
-    setSelectedCityName(city?.label || "");
-    try {
-      const districtsData = await fetchDistrictsByProvince(cityCode);
-      setDistricts(districtsData);
-      setSelectedDistrict(null);
-      setSelectedDistrictName("");
-      setSelectedWard(null);
-      setSelectedWardName("");
-      setWards([]);
-    } catch (error) {
-      console.error("Lỗi khi lấy quận/huyện:", error);
-      message.error("Không thể tải danh sách quận/huyện.");
-    }
-  };
-
-  const handleDistrictChange = async (districtCode) => {
-    setSelectedDistrict(districtCode);
-    const district = districts.find((d) => d.code === districtCode);
-    setSelectedDistrictName(district?.name || "");
-    try {
-      const wardsData = await fetchWardsByDistrict(districtCode);
-      setWards(wardsData);
-      setSelectedWard(null);
-      setSelectedWardName("");
-    } catch (error) {
-      console.error("Lỗi khi lấy phường/xã:", error);
-      message.error("Không thể tải danh sách phường/xã.");
-    }
-  };
-
-  const handleWardChange = (wardCode) => {
-    setSelectedWard(wardCode);
-    const ward = wards.find((w) => w.code === wardCode);
-    setSelectedWardName(ward?.name || "");
+  const handleStoreChange = (storeId) => {
+    setSelectedStore(storeId);
   };
 
   const handleBookingSubmit = async () => {
+    if (!selectedService || !selectedStore || !selectedDateTime) {
+      message.warning("Vui lòng điền đầy đủ thông tin đặt lịch.");
+      return;
+    }
+    if (!isChecked) {
+      message.warning("Vui lòng xác nhận thông tin cá nhân.");
+      return;
+    }
 
-    navigate(`/booking-success/${1}`);
-    message.success("Đặt lịch thành công");
+    try {
+      setIsLoading(true);
+      const bookingData = {
+        userId: user._id,
+        serviceId: selectedService,
+        storeId: selectedStore,
+        bookingDate: selectedDateTime,
+      };
 
-    // if (!selectedService || !selectedStaff || !selectedDateTime) {
-    //   message.warning("Vui lòng điền đầy đủ thông tin booking.");
-    //   return;
-    // }
+      const response = await createBooking(bookingData); // Call the createBooking API
 
-    // setIsLoading(true);
-    // const selectedStaffData = staffList.find(
-    //   (staff) => staff._id === selectedStaff
-    // );
-    // const staffDiscount = selectedStaffData?.discountPercentage || 0;
-    // const bookingData = {
-    //   customerId: user._id,
-    //   serviceId: selectedService,
-    //   preferredStaffId: selectedStaff,
-    //   status: "pending",
-    //   bookingTime: selectedDateTime.toISOString(),
-    //   totalCost:
-    //     services.find((service) => service._id === selectedService)
-    //       ?.basePrice || 0,
-    //   customerAddress: `${street}, ${selectedWardName}, ${selectedDistrictName}, ${selectedCityName}`,
-    //   staffDiscount,
-    // };
+      if (response) {
+        console.log(response.payload)
+        message.success("Đặt lịch thành công!");
+        setIsLoading(false);
 
-    // try {
-    //   const response = await createBooking(bookingData);
-    //   const bookingId = response.payload.bookingId;
-    //   navigate(`/booking-success/${bookingId}`, { state: bookingData });
-    //   message.success("Đặt lịch thành công");
-    // } catch (error) {
-    //   message.error(
-    //     error?.response?.data?.message ||
-    //     "Tạo booking thất bại, vui lòng thử lại sau."
-    //   );
-    //   console.error("Tạo booking thất bại:", error);
-    // } finally {
-    //   setIsLoading(false);
-    // }
+        // Navigate to the BookingSuccess page with bookingId
+        navigate(`/booking-success/${response.payload._id}`);
+      }
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      message.error("Có lỗi xảy ra khi đặt lịch. Vui lòng thử lại.");
+      setIsLoading(false);
+    }
   };
 
   const next = () => {
@@ -219,16 +97,8 @@ const App = () => {
       message.warning("Vui lòng chọn dịch vụ trước khi tiếp tục.");
       return;
     }
-    if (
-      current === 1 &&
-      (
-        !selectedDateTime)
-    ) {
-      message.warning("Vui lòng điền đầy đủ thông tin thời gian và địa điểm.");
-      return;
-    }
-    if (current === 1) {
-      handleFetchStaff();
+    if (current === 1 && (!selectedStore || !selectedDateTime)) {
+      message.warning("Vui lòng chọn cửa hàng và thời gian.");
       return;
     }
     setCurrent(current + 1);
@@ -247,7 +117,7 @@ const App = () => {
   const disabledTime = (date) => {
     const hours = Array.from(Array(24).keys());
     return {
-      disabledHours: () => hours.filter((hour) => hour < 8 || hour >= 20),
+      disabledHours: () => hours.filter((hour) => hour < 8 || hour >= 21),
     };
   };
 
@@ -280,8 +150,8 @@ const App = () => {
               label: (
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <img
-                    src={service.images[0] || "/default-service.png"}
-                    alt={service.serviceName}
+                    src={service.serviceImages[0] || "/default-service.png"}
+                    alt={service.title}
                     style={{
                       width: "50px",
                       height: "50px",
@@ -292,10 +162,10 @@ const App = () => {
                   />
                   <div>
                     <div style={{ fontWeight: "bold" }}>
-                      {service.serviceName}
+                      {service.title}
                     </div>
                     <div style={{ fontSize: "12px", color: "#888" }}>
-                      {`Chi phí dự tính: ${formatCurrency(service.basePrice)}`}
+                      {`Chi phí dự tính: ${formatCurrency(service.avgPrice)}`}
                     </div>
                   </div>
                 </div>
@@ -311,93 +181,62 @@ const App = () => {
       ),
     },
     {
-      title: "Thời gian và địa điểm",
+      title: "Chọn cửa hàng và thời gian",
       content: (
         <div style={{ padding: "20px", textAlign: "center" }}>
-          <h3
-            style={{ color: "#FF6F3C", fontSize: "24px", fontWeight: "bold" }}
-          >
-            Chọn thời gian và địa điểm
+          <h3 style={{ color: "#FF6F3C", fontSize: "24px", fontWeight: "bold" }}>
+            Chọn cửa hàng và thời gian
           </h3>
-          {/* <div
+
+          <Select
+            showSearch
+            placeholder="Chọn cửa hàng"
             style={{
-              display: "flex",
-              gap: "10px",
-              marginBottom: "20px",
-              justifyContent: "center",
-              flexWrap: "wrap",
+              width: "100%",
+              maxWidth: "600px",
+              margin: "20px auto",
+              display: "block",
+              borderRadius: "5px",
+              height: "80px",
+              border: "1px solid #FF6F3C",
+              fontSize: "16px",
             }}
-          >
-            <Select
-              showSearch
-              placeholder="Chọn Tỉnh/Thành phố"
-              optionFilterProp="children"
-              style={{
-                flex: 1,
-                maxWidth: "250px",
-                height: "40px",
-                borderRadius: "5px",
-                border: "1px solid #FF6F3C",
-                fontSize: "16px",
-              }}
-              onChange={handleCityChange}
-              value={selectedCity || undefined}
-              options={cities}
-            />
-            <Select
-              showSearch
-              placeholder="Chọn Quận/Huyện"
-              optionFilterProp="children"
-              style={{
-                flex: 1,
-                maxWidth: "250px",
-                height: "40px",
-                borderRadius: "5px",
-                border: "1px solid #FF6F3C",
-                fontSize: "16px",
-              }}
-              onChange={handleDistrictChange}
-              value={selectedDistrict || undefined}
-              options={districts.map((district) => ({
-                value: district.code,
-                label: district.name,
-              }))}
-              disabled={!selectedCity}
-            />
-            <Select
-              showSearch
-              placeholder="Chọn Phường/Xã"
-              optionFilterProp="children"
-              style={{
-                flex: 1,
-                maxWidth: "250px",
-                height: "40px",
-                borderRadius: "5px",
-                border: "1px solid #FF6F3C",
-                fontSize: "16px",
-              }}
-              onChange={handleWardChange}
-              value={selectedWard || undefined}
-              options={wards.map((ward) => ({
-                value: ward.code,
-                label: ward.name,
-              }))}
-              disabled={!selectedDistrict}
-            />
-            <Input
-              placeholder="Nhập tên đường"
-              style={{
-                flex: 2,
-                maxWidth: "200px",
-                height: "40px",
-                borderRadius: "5px",
-                border: "1px solid #FF6F3C",
-                fontSize: "16px",
-              }}
-              onChange={(e) => setStreet(e.target.value)}
-              value={street}
-            />
-          </div> */}
+            onChange={handleStoreChange}
+            value={selectedStore || undefined}
+            options={storeOptions.map((store) => ({
+              value: store._id,
+              label: (
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <img
+                    src={store.storeImages[0] || "/default-store.png"}
+                    alt={store.storeName}
+                    style={{
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%", // Circular image
+                      marginRight: "10px",
+                    }}
+                  />
+                  <div>
+                    <span>{store.storeName}</span>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "#888",
+                        marginTop: "5px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {store.storeAddress}
+                    </div>
+                  </div>
+                </div>
+              ),
+            }))}
+
+          />
+
+          {/* Date picker */}
           <DatePicker
             showTime
             onChange={(dateTime) => setSelectedDateTime(dateTime)}
@@ -407,89 +246,56 @@ const App = () => {
               height: "40px",
               fontSize: "16px",
               width: "100%",
-              maxWidth: "500px",
+              maxWidth: "600px",
+              marginTop: "15px", // Space between the date picker and button
             }}
             format="YYYY-MM-DD HH:mm"
             placeholder="Chọn ngày và giờ"
             disabledDate={disabledDate}
             disabledTime={disabledTime}
           />
+
+          {/* Checkbox and Text */}
+          <div style={{ marginTop: "20px" }}>
+            <Checkbox
+              checked={isChecked}
+              onChange={(e) => setIsChecked(e.target.checked)}
+            >
+              Lưu ý: Thông tin cá nhân của bạn sẽ là thông tin sử dụng để đặt lịch.{" "}
+              <a
+                href="/profile"
+                style={{
+                  color: "#FF6F3C",
+                  textDecoration: "underline",
+                }}
+              >
+                Thay đổi thông tin tại đây
+              </a>
+            </Checkbox>
+          </div>
+
+          {/* User Personal Information */}
+          <Card
+            style={{
+              marginTop: "20px",
+              textAlign: "center",
+              fontSize: "16px",
+              color: "#555",
+              width: "80%",
+              maxWidth: "300px", // Limit the max width of the card
+              marginLeft: "auto", // Center the card horizontally
+              marginRight: "auto",
+            }}
+            title="Thông tin đặt lịch"
+            bordered={false}
+          >
+            <p><strong>Họ tên:</strong> {user.fullName}</p>
+            <p><strong>Email:</strong> {user.email}</p>
+            <p><strong>Số điện thoại:</strong> {user.phone}</p>
+          </Card>
         </div>
       ),
-    },
-    // 
-    // {
-    //   title: "Chọn nhân viên theo yêu cầu",
-    //   content: (
-    //     <div style={{ padding: "20px", textAlign: "center" }}>
-    //       <h3 style={{ color: "#FF6F3C", fontSize: "24px" }}>
-    //         Chọn nhân viên yêu thích của bạn:
-    //       </h3>
-    //       <Select
-    //         showSearch
-    //         placeholder="Chọn nhân viên"
-    //         optionFilterProp="children"
-    //         style={{
-    //           width: "100%",
-    //           maxWidth: "500px",
-    //           margin: "20px auto",
-    //           display: "block",
-    //           borderRadius: "5px",
-    //           height: "80px",
-    //           border: "1px solid #FF6F3C",
-    //           fontSize: "16px",
-    //         }}
-    //         onChange={(value) => setSelectedStaff(value)}
-    //         value={selectedStaff || undefined}
-    //         options={staffList.map((staff) => ({
-    //           value: staff._id,
-    //           label: (
-    //             <div style={{ display: "flex", alignItems: "center" }}>
-    //               <img
-    //                 src={
-    //                   staff.avatar ||
-    //                   "https://i.pinimg.com/originals/94/e4/cb/94e4cb5ae194975f6dc84d1495c3abcd.gif"
-    //                 }
-    //                 alt={staff.name}
-    //                 style={{
-    //                   width: "50px",
-    //                   height: "50px",
-    //                   objectFit: "cover",
-    //                   marginRight: "10px",
-    //                   borderRadius: "50%",
-    //                 }}
-    //               />
-    //               <div>
-    //                 <div style={{ display: "flex", alignItems: "center" }}>
-    //                   <div style={{ fontWeight: "bold" }}>{staff.name}</div>
-    //                   {staff.isFavorite && (
-    //                     <span
-    //                       style={{
-    //                         color: "#FFD700",
-    //                         fontSize: "18px",
-    //                         marginLeft: "5px",
-    //                       }}
-    //                     >
-    //                       ★
-    //                     </span>
-    //                   )}
-    //                 </div>
-    //                 <div style={{ fontSize: "12px", color: "#888" }}>
-    //                   {staff.address}
-    //                 </div>
-    //               </div>
-    //             </div>
-    //           ),
-    //         }))}
-    //         filterOption={(input, option) =>
-    //           option.label.props.children[1].props.children[0]
-    //             .toLowerCase()
-    //             .includes(input.toLowerCase())
-    //         }
-    //       />
-    //     </div>
-    //   ),
-    // },
+    }
   ];
 
   const items = steps.map((item) => ({ key: item.title, title: item.title }));

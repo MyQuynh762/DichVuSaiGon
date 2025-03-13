@@ -1,57 +1,24 @@
-import React, { useEffect, useState } from "react";
-import { Select, Input, Button, message } from "antd";
-import { getAllServices } from "../../services/serviceService";
-import { registerStaff } from "../../services/authService";
-
-const onSearch = (value) => {
-  console.log("search:", value);
-};
+import React, { useState } from "react";
+import { Input, Button, message, Form } from "antd";
+import { registerSupplier } from "../../services/authService";
 
 function Employee() {
-  const [services, setServices] = useState([]);
   const [formData, setFormData] = useState({
-    fullname: "",
+    fullName: "",
     phone: "",
     email: "",
-    age: "",
-    serviceIds: [],
-    address: "",
-    agreeToContact: false,
-    cvFile: null, // Lưu file CV tải lên
+    password: "",
+    businessLicense: null, // To store the business license file
+    role: "supplier", // Setting role as 'supplier'
   });
   const [errors, setErrors] = useState({});
-  // useEffect(() => {
-  //   const fetchServices = async () => {
-  //     const data = await getAllServices(1, 50);
-  //     setServices(
-  //       data.services.map((service) => ({
-  //         value: service._id,
-  //         label: service.serviceName,
-  //       }))
-  //     );
-  //   };
-  //   fetchServices();
-  // }, []);
+  const [loading, setLoading] = useState(false); // Add loading state
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
-    }));
-  };
-
-  const handleSelectChange = (value, fieldName) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      [fieldName]: value,
-    }));
-  };
-
-  const handleCheckboxChange = (e) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      agreeToContact: e.target.checked,
     }));
   };
 
@@ -68,17 +35,18 @@ function Employee() {
     if (file && allowedTypes.includes(file.type)) {
       setFormData((prevData) => ({
         ...prevData,
-        cvFile: file,
+        businessLicense: file,
       }));
     } else {
       message.error("Chỉ chấp nhận các file pdf, doc, docx, jpg, jpeg, png.");
     }
   };
+
   const validateForm = () => {
     let validationErrors = {};
 
-    if (!formData.fullname.trim()) {
-      validationErrors.fullname = "Vui lòng nhập họ tên.";
+    if (!formData.fullName.trim()) {
+      validationErrors.fullName = "Vui lòng nhập họ tên.";
     }
     if (!formData.phone.trim()) {
       validationErrors.phone = "Vui lòng nhập số điện thoại.";
@@ -90,23 +58,8 @@ function Employee() {
     } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email)) {
       validationErrors.email = "Email không hợp lệ.";
     }
-    if (!formData.age.trim()) {
-      validationErrors.age = "Vui lòng nhập tuổi.";
-    } else if (
-      !/^\d+$/.test(formData.age) ||
-      formData.age < 18 ||
-      formData.age > 65
-    ) {
-      validationErrors.age = "Tuổi không hợp lệ (18-65).";
-    }
-    if (formData.serviceIds.length === 0) {
-      validationErrors.serviceIds = "Vui lòng chọn ít nhất một dịch vụ.";
-    }
-    if (!formData.address.trim()) {
-      validationErrors.address = "Vui lòng chọn thành phố.";
-    }
-    if (!formData.cvFile) {
-      validationErrors.cvFile = "Vui lòng tải lên CV.";
+    if (!formData.businessLicense) {
+      validationErrors.businessLicense = "Vui lòng tải lên giấy phép kinh doanh.";
     }
 
     setErrors(validationErrors);
@@ -118,31 +71,28 @@ function Employee() {
       return;
     }
 
+    setLoading(true); // Set loading to true when the form starts submitting
+
     const formDataToSend = new FormData();
-    formDataToSend.append("name", formData.fullname);
+    formDataToSend.append("fullName", formData.fullName);
     formDataToSend.append("phone", formData.phone);
     formDataToSend.append("email", formData.email);
-    formDataToSend.append("age", formData.age);
-    formDataToSend.append("address", formData.address);
-    formDataToSend.append("cv", formData.cvFile);
-    formData.serviceIds.forEach((id) =>
-      formDataToSend.append("serviceIds", id)
-    );
+    formDataToSend.append("password", formData.password);
+    formDataToSend.append("businessLicense", formData.businessLicense); // Append business license file
+    formDataToSend.append("role", formData.role); // Set role as supplier
 
     try {
-      const response = await registerStaff(formDataToSend);
+      const response = await registerSupplier(formDataToSend);
 
       if (response.success) {
         message.success("Đăng ký thành công. Vui lòng chờ duyệt.");
         setFormData({
-          fullname: "",
+          fullName: "",
           phone: "",
           email: "",
-          age: "",
-          serviceIds: [],
-          address: "",
-          agreeToContact: false,
-          cvFile: null,
+          password: "",
+          businessLicense: null,
+          role: "supplier", // Reset role
         });
       } else {
         message.error(response.message || "Đăng ký thất bại.");
@@ -150,6 +100,8 @@ function Employee() {
     } catch (error) {
       console.error("Error:", error);
       message.error("Đăng ký thất bại.");
+    } finally {
+      setLoading(false); // Set loading to false after the submission process is complete
     }
   };
 
@@ -160,7 +112,7 @@ function Employee() {
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#f5f5f5",
-        padding: "50px 20px", // Margin bên ngoài
+        padding: "50px 20px",
       }}
     >
       {/* Phần text bên trái */}
@@ -173,35 +125,26 @@ function Employee() {
         }}
       >
         <h1 style={{ fontSize: "36px", fontWeight: "bold", color: "#ff6f3c" }}>
-          Cơ hội thu nhập hấp dẫn.
+          Cung cấp dịch vụ cho khách hàng
         </h1>
-        <h1
+        <h2
           style={{
-            fontSize: "36px",
+            fontSize: "28px",
             fontWeight: "bold",
             color: "#ff6f3c",
             marginBottom: "20px",
           }}
         >
-          Làm chủ thời gian của bạn.
-        </h1>
+          Trở thành đối tác của chúng tôi
+        </h2>
         <p style={{ fontSize: "18px", color: "#555", lineHeight: "1.6" }}>
-          Trở thành đối tác cung cấp dịch vụ và tận hưởng cơ hội kiếm thêm thu nhập
-          với lịch làm việc linh hoạt, phù hợp với nhu cầu cá nhân của bạn.
+          Bạn là chủ cửa hàng cung cấp dịch vụ và muốn gia nhập vào hệ thống của chúng tôi? Hãy đăng ký ngay để
+          tiếp cận khách hàng tiềm năng qua nền tảng của chúng tôi.
         </p>
-        <p
-          style={{
-            fontSize: "18px",
-            color: "#555",
-            lineHeight: "1.6",
-            marginTop: "20px",
-          }}
-        >
-          Chúng tôi luôn chào đón những cá nhân năng động, có tâm huyết và mong muốn
-          mang lại trải nghiệm tốt nhất cho khách hàng.
+        <p style={{ fontSize: "18px", color: "#555", lineHeight: "1.6" }}>
+          Cung cấp các dịch vụ của bạn và nhận được nhiều cơ hội hợp tác và phát triển hơn nữa!
         </p>
       </div>
-
 
       {/* Form bên phải */}
       <div
@@ -222,96 +165,100 @@ function Employee() {
             marginBottom: "20px",
           }}
         >
-          Đăng ký đối tác cung cấp dịch vụ
+          Đăng ký làm đối tác
         </h2>
-        <label>Tên đối tác</label>
-        <Input
-          name="fullname"
-          style={{ borderRadius: "4px", height: "40px" }}
-          placeholder="Nhập tên"
-          value={formData.fullname}
-          onChange={handleInputChange}
-        />
-        {errors.fullname && (
-          <p style={{ marginBottom: "15px", color: "red" }}>
-            {errors.fullname}
-          </p>
-        )}
-        <label>Số điện thoại</label>
-        <Input
-          name="phone"
-          style={{ borderRadius: "4px", height: "40px" }}
-          placeholder="Nhập số điện thoại"
-          value={formData.phone}
-          onChange={handleInputChange}
-        />
-        {errors.phone && (
-          <p style={{ marginBottom: "15px", color: "red" }}>{errors.phone}</p>
-        )}
 
-        <label>Email</label>
-        <Input
-          name="email"
-          style={{ borderRadius: "4px", height: "40px" }}
-          placeholder="Nhập email"
-          value={formData.email}
-          onChange={handleInputChange}
-        />
-        {errors.email && (
-          <p style={{ marginBottom: "15px", color: "red" }}>{errors.email}</p>
-        )}
+        <Form layout="vertical">
+          <Form.Item
+            label="Họ tên"
+            required
+            validateStatus={errors.fullName ? "error" : "success"}
+            help={errors.fullName}
+          >
+            <Input
+              name="fullName"
+              value={formData.fullName}
+              style={{ height: "40px" }}
+              onChange={handleInputChange}
+              placeholder="Nhập họ tên"
+            />
+          </Form.Item>
 
-        <label>Tuổi</label>
-        <Input
-          name="age"
-          type="number"
-          style={{ borderRadius: "4px", height: "40px" }}
-          placeholder="Nhập tuổi"
-          value={formData.age}
-          onChange={handleInputChange}
-        />
-        {errors.age && (
-          <p style={{ marginBottom: "15px", color: "red" }}>{errors.age}</p>
-        )}
-        <label>Địa chỉ</label>
-        <Input
-          name="address"
-          type="text"
-          style={{ borderRadius: "4px", height: "40px" }}
-          placeholder="Nhập địa chỉ"
-          value={formData.address}
-          onChange={handleInputChange}
-        />
-        {errors.address && (
-          <p style={{ marginBottom: "15px", color: "red" }}>{errors.address}</p>
-        )}
-        <div style={{ margin: "15px 0" }}>
-          <input
-            type="checkbox"
-            checked={formData.agreeToContact}
-            onChange={handleCheckboxChange}
-            style={{ marginRight: "10px" }}
-          />
-          <span style={{ fontSize: "14px", color: "#555" }}>
-            Tôi đồng ý việc đại diện từ DVSG liên lạc với tôi thông qua số
-            điện thoại mà tôi đăng ký.
-          </span>
-        </div>
-        <Button
-          type="primary"
-          style={{
-            width: "100%",
-            height: "45px",
-            backgroundColor: "#ff6f3c",
-            borderColor: "#ff6f3c",
-            fontSize: "16px",
-            fontWeight: "bold",
-            borderRadius: "6px",
-          }}
-          onClick={handleRegister}
-        >
-          Đăng ký
-        </Button>
+          <Form.Item
+            label="Số điện thoại"
+            required
+            validateStatus={errors.phone ? "error" : "success"}
+            help={errors.phone}
+          >
+            <Input
+              style={{ height: "40px" }}
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              placeholder="Nhập số điện thoại"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Email"
+            required
+            validateStatus={errors.email ? "error" : "success"}
+            help={errors.email}
+          >
+            <Input
+              name="email"
+              style={{ height: "40px" }}
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Nhập email"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Mật khẩu tài khoản"
+            required
+          >
+            <Input.Password
+              style={{ height: "40px" }}
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              placeholder="Nhập mật khẩu"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Upload Giấy phép kinh doanh"
+            required
+            validateStatus={errors.businessLicense ? "error" : "success"}
+            help={errors.businessLicense}
+          >
+            <Input
+              style={{ height: "40px" }}
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              onChange={handleFileChange}
+              placeholder="Tải lên giấy phép kinh doanh"
+            />
+          </Form.Item>
+
+          <Button
+            type="primary"
+            style={{
+              width: "100%",
+              height: "45px",
+              backgroundColor: "#ff6f3c",
+              borderColor: "#ff6f3c",
+              fontSize: "16px",
+              fontWeight: "bold",
+              borderRadius: "6px",
+            }}
+            onClick={handleRegister}
+            loading={loading} // Show loading spinner when submitting
+          >
+            Đăng ký nhận việc
+          </Button>
+        </Form>
       </div>
     </div>
   );

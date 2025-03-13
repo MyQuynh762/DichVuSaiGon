@@ -57,7 +57,12 @@ const Search = () => {
   };
 
   const handleExperienceClick = (service) => {
-    navigate("/service", { state: { serviceId: service._id } });
+    if (!isAuthenticated) {
+      message.warning("Bạn cần đăng nhập để đặt dịch vụ.");
+      navigate("/login");
+    } else {
+      navigate("/service", { state: { serviceId: service._id } });
+    }
   };
 
   // Close dropdown when clicking outside
@@ -122,7 +127,7 @@ const Search = () => {
                   const discountPrice =
                     service.discount && service.discount > 0
                       ? service.basePrice -
-                      (service.basePrice * service.discount) / 100
+                        (service.basePrice * service.discount) / 100
                       : service.basePrice;
 
                   return (
