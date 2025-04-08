@@ -42,6 +42,7 @@ function ListService() {
   const wishlist = useSelector((state) => state.wishlist.wishlist);
 
   // Fetch initial data: categories, provinces, stores
+  // In the `useEffect` hook for fetching categories and provinces
   useEffect(() => {
     const fetchCategories = async () => {
       const data = await getAllCategories();
@@ -51,6 +52,13 @@ function ListService() {
     const fetchProvinces = async () => {
       const data = await getProvinces();
       setProvinces(data || []);
+      const saigonProvince = data.find(province => province.name === "Thành phố Hồ Chí Minh");
+      if (saigonProvince) {
+        setSelectedProvince(saigonProvince.name); // Set default to "Sài Gòn"
+        setSelectedProvinceCode(saigonProvince.code); // Store the code for filtering
+        const districts = await getDistricts(saigonProvince.code); // Fetch districts for Sài Gòn
+        setDistricts(districts || []);
+      }
     };
 
     const fetchStores = async () => {
@@ -62,6 +70,7 @@ function ListService() {
     fetchProvinces();
     fetchStores();
   }, []);
+
 
   // Fetch services and apply filters
   useEffect(() => {
@@ -105,12 +114,12 @@ function ListService() {
       );
     }
 
-    // Filter by category
     if (selectedCategory) {
       filteredData = filteredData.filter(
-        (service) => service.categoryId === selectedCategory
+        (service) => service.categoryId._id === selectedCategory
       );
     }
+
 
     // Filter by store selection
     if (selectedStores?.length > 0) {
@@ -182,7 +191,6 @@ function ListService() {
   };
 
   const clearFilters = () => {
-    setSelectedProvince("");
     setSelectedDistrict("");
     setSelectedWard("");
     setSearch("");
@@ -211,20 +219,48 @@ function ListService() {
             {categories.map((category) => (
               <li
                 key={category._id}
-                style={{ padding: "10px 0", cursor: "pointer", display: "flex", alignItems: "center" }}
+                style={{ padding: "10px 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "flex-start" }}
                 onClick={() => handleCategorySelect(category._id)}
               >
-                <img
-                  src={category.images}
-                  alt={category.categoryName}
-                  style={{ width: "30px", height: "30px", borderRadius: "5px", marginRight: "10px" }}
-                />
-                <span style={{ fontWeight: selectedCategory === category._id ? "bold" : "normal" }}>
-                  {category.categoryName}
-                </span>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <img
+                    src={category.images}
+                    alt={category.categoryName}
+                    style={{ width: "30px", height: "30px", borderRadius: "5px", marginRight: "10px" }}
+                  />
+                  <span style={{ fontWeight: selectedCategory === category._id ? "bold" : "normal" }}>
+                    {category.categoryName}
+                  </span>
+                </div>
+
+                {/* Kiểm tra danh mục con và hiển thị chúng */}
+                {category.listCategory && category.listCategory.length > 0 && (
+                  <ul style={{ listStyle: "none", paddingLeft: "20px", marginTop: "10px" }}>
+                    {category.listCategory.map((childCategory) => (
+                      <li
+                        key={childCategory._id}
+                        style={{ padding: "5px 0", cursor: "pointer", display: "flex", alignItems: "center" }}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Ngừng sự kiện bubble lên cha
+                          handleCategorySelect(childCategory._id);
+                        }}
+                      >
+                        <img
+                          src={childCategory.images}
+                          alt={childCategory.categoryName}
+                          style={{ width: "25px", height: "25px", borderRadius: "5px", marginRight: "8px" }}
+                        />
+                        <span style={{ fontWeight: selectedCategory === childCategory._id ? "bold" : "normal" }}>
+                          {childCategory.categoryName}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>
+
 
           {/* Filter by Location */}
           <div style={{ marginTop: "20px" }}>
@@ -240,6 +276,7 @@ function ListService() {
                 value={selectedProvince}
                 onChange={handleProvinceChange}
                 style={{ width: '100%', height: '40px' }}
+                disabled
               >
                 {provinces.map((province) => (
                   <Select.Option key={province.name} value={province.name}>

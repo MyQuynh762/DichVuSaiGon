@@ -1,46 +1,40 @@
 import React from "react";
-import Slider from "./Slider";
+import Slider from "./Slider"; // Giả sử Slider là component hiển thị mainBanner
 import { Link } from "react-router-dom";
-import Banner3 from "../../../image/banner3.jpg"
-import Banner1 from "../../../image/banner1.jpg"
 
-
-const Banner = () => {
-  const BannerRightData = [
-    {
-      id: 1,
-      img: Banner3,
-    },
-    {
-      id: 2,
-      img: Banner1,
-    },
-  ];
-
+const Banner = ({ mainBanner, rightMainBanner }) => {
   return (
     <section id="home-banner">
       <div className="container">
         <div className="home-banner-content">
+          {/* Hiển thị mainBanner trong Slider */}
           <div className="banner-slider-wrapper banner-left">
-            <Slider />
+            <Slider banners={mainBanner} /> {/* Truyền mainBanner vào Slider */}
           </div>
+
+          {/* Hiển thị rightMainBanner */}
           <div className="banner-right-imgs">
-            {BannerRightData.map((item) => (
-              <div key={item.id} className="banner-img-wrapper">
+            {rightMainBanner.map((item) => (
+              <div key={item._id} className="banner-img-wrapper">
                 <Link to="/list-service">
-                  <img
-                    src={item.img}
-                    alt="banner-img"
-                    style={{
-                      width: "390px",
-                      height: "193px",
-                      objectFit: "cover",
-                    }}
-                  />
+                  {item.images.map((image, index) => (
+                    <img
+                      key={index}
+                      src={image} // Hiển thị tất cả ảnh trong mảng images
+                      alt={`banner-img-${index + 1}`}
+                      style={{
+                        width: "390px",
+                        height: "193px",
+                        objectFit: "cover",
+                        marginBottom: "10px", // Tạo khoảng cách giữa các ảnh
+                      }}
+                    />
+                  ))}
                 </Link>
               </div>
             ))}
           </div>
+
         </div>
       </div>
     </section>

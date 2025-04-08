@@ -36,6 +36,14 @@ function Store() {
     const fetchProvinces = async () => {
       const data = await getProvinces();
       setProvinces(data || []);
+
+      // Find and set the default province to Thành phố Hồ Chí Minh
+      const hoChiMinhProvince = data.find(province => province.name === "Thành phố Hồ Chí Minh");
+      if (hoChiMinhProvince) {
+        setSelectedProvince(hoChiMinhProvince.name);  // Set default province
+        const districts = await getDistricts(hoChiMinhProvince.code);  // Fetch districts for Thành phố Hồ Chí Minh
+        setDistricts(districts || []);
+      }
     };
 
     const fetchStores = async () => {
@@ -53,7 +61,7 @@ function Store() {
 
   // Fetch stores based on filters
   useEffect(() => {
-    fetchFilteredStores();
+    fetchFilteredStores();  // Trigger filtering whenever the selected province, district, or ward changes
   }, [search, selectedProvince, selectedDistrict, selectedWard]);
 
   const fetchFilteredStores = async () => {
@@ -114,7 +122,6 @@ function Store() {
   };
 
   const clearFilters = () => {
-    setSelectedProvince("");
     setSelectedDistrict("");
     setSelectedWard("");
     setSearch("");
@@ -151,6 +158,7 @@ function Store() {
               value={selectedProvince}
               onChange={handleProvinceChange}
               style={{ width: '100%', height: '40px' }}
+              disabled
             >
               {provinces.map((province) => (
                 <Select.Option key={province.name} value={province.name}>
@@ -235,23 +243,18 @@ function Store() {
                       <Button
                         type="primary"
                         onClick={() => handleStoreDetailClick(store)}
-                        style={{ backgroundColor: "#FF6F3C", borderColor: "#FF6F3C" }}
+                        style={{ backgroundColor: "#FF6F3C", borderColor: "#FF6F3C", width: "90%" }}
                       >
                         Chi tiết cửa hàng
                       </Button>,
-                      <FontAwesomeIcon
-                        icon={isInWishlist ? faSolidHeart : faRegularHeart}
-                        onClick={() => handleAddToWishlist(store)}
-                        style={{ cursor: "pointer", color: isInWishlist ? "#FF6F3C" : "gray", fontSize: "24px" }}
-                      />,
                     ]}
                   >
                     <Meta
                       title={store.storeName}
                       description={
                         <>
-                          <p style={{ fontWeight: "bold"}}>SĐT: {store.storePhone}</p>
-                          <p style={{ fontWeight: "bold"}}>Email: {store.storeEmail}</p>
+                          <p style={{ fontWeight: "bold" }}>SĐT: {store.storePhone}</p>
+                          <p style={{ fontWeight: "bold" }}>Email: {store.storeEmail}</p>
                           <p style={{ color: "#FF6F3C", fontSize: "13px", fontWeight: "bold", cursor: "pointer" }} onClick={() => handleAddressClick(store)}>
                             {store.storeAddress}
                           </p>
