@@ -4,6 +4,7 @@ import { message } from "antd";
 import { signIn } from "../../services/authService";
 import { loginUser } from "../../redux/actions/userActions"; // import action để lưu user vào Redux
 import { useNavigate } from "react-router-dom"; // import useNavigate
+import { GoogleLogin } from "@react-oauth/google";
 
 const initFormValue = {
   email: "",
@@ -19,7 +20,25 @@ function Login() {
   const [formError, setFormError] = useState({});
   const dispatch = useDispatch();
   const navigate = useNavigate(); // khởi tạo useNavigate
-
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/auth/google-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      });
+      const result = await res.json();
+      console.log(result)
+      const { user, accessToken } = result.payload;
+      localStorage.setItem("accessToken", accessToken);
+      dispatch(loginUser(user));
+      message.success("Đăng nhập Google thành công!");
+      navigate("/");
+    } catch (error) {
+      console.log(error)
+      message.error("Lỗi khi đăng nhập bằng Google");
+    }
+  };
   const validateForm = () => {
     const error = {};
     if (isEmptyValue(formValue.email)) {
@@ -62,7 +81,7 @@ function Login() {
       } catch (error) {
         message.error(
           error.response?.data?.message ||
-            "Có lỗi xảy ra phía máy chủ, vui lòng thử lại!"
+          "Có lỗi xảy ra phía máy chủ, vui lòng thử lại!"
         ); // Thông báo lỗi từ server
       }
     } else {
@@ -206,6 +225,13 @@ function Login() {
             Đăng nhập
           </button>
         </form>
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => message.error("Google login thất bại")}
+          />
+        </div>
+
       </div>
     </div>
   );

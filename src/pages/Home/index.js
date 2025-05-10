@@ -10,18 +10,62 @@ import { useNavigate } from "react-router-dom";
 import SampleSlider from "./SampleSlider";
 import Procedure from "./Procedure";
 import "./index.css";
+import ChatBox from "./Chat/ChatBox";
+import { getAllBanners } from "../../services/bannerService";
 
 const Home = () => {
+  const [banners, setBanners] = useState({
+    mainBanner: [],
+    rightMainBanner: [],
+    ads1: [],
+    ads2: [],
+  });
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const data = await getAllBanners(1, 100); // Fetch first page with 10 banners per page
+        const mainBanner = data.filter(banner => banner.type === "main_banner");
+        const rightMainBanner = data.filter(banner => banner.type === "right_main_banner");
+        const ads1 = data.filter(banner => banner.type === "ads1");
+        const ads2 = data.filter(banner => banner.type === "ads2");
+
+        setBanners({
+          mainBanner,
+          rightMainBanner,
+          ads1,
+          ads2,
+        });
+        console.log(banners.mainBanner)
+      } catch (error) {
+        message.error("Lỗi khi tải banner.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBanners();
+  }, []);
+
+  const [showChatBox, setShowChatBox] = useState(false);
+  const toggleChatBox = async () => {
+    setShowChatBox(!showChatBox);
+  };
+  const closeChatBox = () => {
+    setShowChatBox(false);
+  };
+
   return (
     <div className="home-content">
       <div className="main">
-        <Banner />
+        <Banner mainBanner={banners.mainBanner} rightMainBanner={banners.rightMainBanner} />
         <Advantages />
-        <HomeAds1 />
+        <HomeAds1 banners={banners.ads1} />
         <Categories />
         <div className="container">
           <div className="top-categories-list">
@@ -35,8 +79,17 @@ const Home = () => {
           </div>
           <SampleSlider />
         </div>
-
-        <HomeAds2 />
+        <Button
+          type="primary"
+          shape="circle"
+          icon={<MessageOutlined size={25} />}
+          size="large"
+          style={styles.chatButton}
+          onClick={toggleChatBox}
+        />
+        {/* Hiển thị ChatBox khi người dùng nhấp vào icon */}
+        {showChatBox && <ChatBox onClose={closeChatBox} />}
+        <HomeAds2 banners={banners.ads2} />
         <Procedure />
         {/* startUse */}
         <div className="startList">
@@ -64,7 +117,7 @@ const styles = {
     zIndex: 1000,
     boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
     color: "#ffffff",
-    backgroundColor: "#d91f28",
+    backgroundColor: "#FF6F3C",
     width: "50px",
     height: "50px",
     display: "flex",
