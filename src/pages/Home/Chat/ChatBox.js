@@ -53,7 +53,8 @@ const ChatBox = ({ onClose }) => {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.PUBLIC_OPENAI_API_KEY}`, // Replace with your OpenAI API key
+              Authorization: `Bearer ${process.env.PUBLIC_OPENAI_API_KEY}`,
+
             },
           }
         );
