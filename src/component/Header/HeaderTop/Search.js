@@ -123,12 +123,8 @@ const Search = () => {
             {services.length > 0 ? (
               <div className="search-result" style={{ padding: "10px" }}>
                 {services.map((service) => {
-                  const defaultImage = service.images[0];
-                  const discountPrice =
-                    service.discount && service.discount > 0
-                      ? service.basePrice -
-                        (service.basePrice * service.discount) / 100
-                      : service.basePrice;
+                  const defaultImage = service?.serviceImages[0];
+                  const discountPrice = service.avgPrice;
 
                   return (
                     <div
@@ -171,7 +167,7 @@ const Search = () => {
                             color: "#ff6f3c",
                             fontWeight: "bold",
                             textDecoration: "none",
-                          }} // Thêm textDecoration: "none"
+                          }}
                           state={{ service }}
                           onClick={() => {
                             setShowSearchResult(false);
@@ -182,12 +178,12 @@ const Search = () => {
                         >
                           <h6
                             style={{
-                              fontSize: "16px", // Tăng font-size
+                              fontSize: "16px",
                               margin: "0 0 5px",
-                              fontWeight: "bold", // In đậm
+                              fontWeight: "bold",
                             }}
                           >
-                            {service.serviceName}
+                            {service.title}
                           </h6>
                         </Link>
 
@@ -209,17 +205,9 @@ const Search = () => {
                         >
                           Danh mục: {service.categoryId.categoryName}
                         </p>
-                        <div
-                          className="service-price"
-                          style={{ fontSize: "12px" }}
-                        >
+                        <div className="service-price" style={{ fontSize: "12px" }}>
                           {service.discount ? (
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                            >
+                            <div style={{ display: "flex", alignItems: "center" }}>
                               <p
                                 style={{
                                   margin: "0",
@@ -228,7 +216,7 @@ const Search = () => {
                                   marginRight: "5px",
                                 }}
                               >
-                                {formatCurrency(service.basePrice)}
+                                {formatCurrency(service.avgPrice)}
                               </p>
                               <p
                                 style={{
@@ -242,7 +230,7 @@ const Search = () => {
                             </div>
                           ) : (
                             <p style={{ margin: "0", fontWeight: "bold" }}>
-                              {formatCurrency(service.basePrice)}
+                              {formatCurrency(service.avgPrice)}
                             </p>
                           )}
                         </div>
@@ -267,8 +255,13 @@ const Search = () => {
                 })}
               </div>
             ) : (
-              <p className="my-2">Không tìm thấy dịch vụ nào.</p>
+              searchValue.trim() && (
+                <p className="my-2" style={{ padding: "10px", color: "#888" }}>
+                  Không tìm thấy dịch vụ nào.
+                </p>
+              )
             )}
+
           </motion.div>
         )}
       </AnimatePresence>
