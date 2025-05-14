@@ -18,6 +18,7 @@ const { Meta } = Card;
 
 function ListService() {
   const [categories, setCategories] = useState([]);
+  const [categoryMap, setCategoryMap] = useState({});
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filteredServices, setFilteredServices] = useState([]);
@@ -46,8 +47,18 @@ function ListService() {
   useEffect(() => {
     const fetchCategories = async () => {
       const data = await getAllCategories();
-      setCategories(data.categories || []);
+      const categoriesData = data.categories || [];
+      setCategories(categoriesData);
+
+      // Tạo map danh mục cha -> danh sách [id cha + các id con]
+      const map = {};
+      for (let cat of categoriesData) {
+        const children = cat.listCategory?.map((child) => child._id) || [];
+        map[cat._id] = [cat._id, ...children];
+      }
+      setCategoryMap(map);
     };
+
 
     const fetchProvinces = async () => {
       const data = await getProvinces();
@@ -93,13 +104,14 @@ function ListService() {
       .join(', ');
 
     const data = await getAllServices(
-      1, // Page 1
-      1000, // Không phân trang ở backend, lấy toàn bộ
+      1,
+      1000,
       search,
-      selectedCategory,
-      storeAddressSearch, // Truyền vào chuỗi địa chỉ tìm kiếm
+      "", // ❗ KHÔNG truyền categoryId ở đây
+      storeAddressSearch,
       storeId
     );
+
 
     const allServices = data.services || [];
     setTotalServices(allServices.length);  // Set total services count
@@ -114,9 +126,9 @@ function ListService() {
       );
     }
 
-    if (selectedCategory) {
-      filteredData = filteredData.filter(
-        (service) => service.categoryId._id === selectedCategory
+    if (selectedCategory?.length > 0) {
+      filteredData = filteredData.filter((service) =>
+        selectedCategory.includes(service.categoryId._id)
       );
     }
 
@@ -147,8 +159,21 @@ function ListService() {
   };
 
   const handleCategorySelect = (categoryId) => {
-    setSelectedCategory(categoryId);
+    if (!categoryId) {
+      setSelectedCategory([]); // Xem tất cả dịch vụ
+      return;
+    }
+
+    // Nếu là danh mục cha
+    if (categoryMap[categoryId]) {
+      setSelectedCategory(categoryMap[categoryId]); // Bao gồm cha và con
+    } else {
+      setSelectedCategory([categoryId]); // Danh mục con
+    }
+
+    setCurrentPage(1); // Reset phân trang
   };
+
 
   const handleProvinceChange = async (provinceName) => {
     const selectedProvince = provinces.find((province) => province.name === provinceName);
@@ -434,3 +459,4 @@ function ListService() {
 }
 
 export default ListService;
+

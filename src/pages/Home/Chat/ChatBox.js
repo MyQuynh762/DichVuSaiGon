@@ -41,25 +41,26 @@ const ChatBox = ({ onClose }) => {
       setMsgList((prevMsgList) => [...prevMsgList, userMessage]); // Cập nhật tin nhắn người dùng vào danh sách
       setInputMessage("")
       try {
-        const aiResponse = await axios.post(
-          "https://api.openai.com/v1/chat/completions",
+       const aiResponse = await axios.post(
+          "https://openrouter.ai/api/v1/chat/completions",
           {
-            model: "gpt-3.5-turbo", // Hoặc "gpt-4" nếu bạn có quyền truy cập
+            model: "openai/gpt-3.5-turbo",
             messages: [
-              { role: "user", content: inputMessage },
+              {
+                role: "user",
+                content: `Hãy trả lời bằng tiếng Việt: ${inputMessage}`,
+              },
             ],
-            max_tokens: 800,
           },
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.PUBLIC_OPENAI_API_KEY}`,
-
+              Authorization: `Bearer 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`, // token từ OpenRouter
             },
           }
         );
 
-        const aiMessage = aiResponse.data.choices[0].message.content;
+        const aiMessage = aiResponse.data.choices[0]?.message?.content || "Không có phản hồi từ AI";
 
         const botMessage = {
           content: aiMessage,
