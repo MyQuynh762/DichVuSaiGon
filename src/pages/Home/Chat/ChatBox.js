@@ -55,7 +55,7 @@ const ChatBox = ({ onClose }) => {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer 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`, // token từ OpenRouter
+              Authorization: `Bearer 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`, // token từ OpenRouter
             },
           }
         );
@@ -120,11 +120,11 @@ const ChatBox = ({ onClose }) => {
             style={{
               ...styles.messageWrapper,
               justifyContent:
-                msg.sender.userId === user?.userId ? "flex-end" : "flex-start",
+                msg.sender?.userId === user?.userId ? "flex-end" : "flex-start",
 
             }}
           >
-            {msg.sender.userId !== user.userId && (
+            {msg.sender?.userId !== user?.userId && (
               <img
                 src={msg.sender.avatar}
                 alt="Avatar"
@@ -135,7 +135,7 @@ const ChatBox = ({ onClose }) => {
               style={{
                 ...styles.message,
                 backgroundColor:
-                  msg.sender.userId === user.userId ? "#f8c2c4" : "#f1f1f1", // Different background color for sender and receiver
+                  msg.sender?.userId === user?.userId ? "#f8c2c4" : "#f1f1f1", // Different background color for sender and receiver
               }}
             >
               <div style={styles.messageHeader}>
@@ -153,7 +153,7 @@ const ChatBox = ({ onClose }) => {
                 </span>
               </div>
               <div style={styles.messageText}>
-                {msg.sender.userId === "AI" ? (
+                {msg.sender?.userId === "AI" ? (
                   <div
                     dangerouslySetInnerHTML={{
                       __html: parseMarkdownToHTML(msg.content),
