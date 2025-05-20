@@ -6,7 +6,7 @@ import { createBooking } from "../../services/bookingService"; // Import API cre
 import dayjs from "dayjs";
 import { useLocation, useNavigate } from "react-router-dom";
 import { formatCurrency } from "../../utils/formatCurrency";
-
+const { Option } = Select;
 const App = () => {
   const location = useLocation();
   const user = useSelector((state) => state.user.userInfo);
@@ -132,7 +132,7 @@ const App = () => {
           <Select
             showSearch
             placeholder="Chọn dịch vụ"
-            optionFilterProp="children"
+            optionFilterProp="label"
             style={{
               width: "100%",
               maxWidth: "500px",
@@ -145,9 +145,17 @@ const App = () => {
             }}
             onChange={handleServiceChange}
             value={selectedService || undefined}
-            options={services.map((service) => ({
-              value: service._id,
-              label: (
+            filterOption={(input, option) =>
+              option.label.toLowerCase().includes(input.toLowerCase())
+            }
+          >
+            {services.map((service) => (
+              <Option
+                key={service._id}
+                value={service._id}
+                label={service.title}
+              >
+                {/* Custom rendering */}
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <img
                     src={service.serviceImages[0] || "/default-service.png"}
@@ -161,22 +169,15 @@ const App = () => {
                     }}
                   />
                   <div>
-                    <div style={{ fontWeight: "bold" }}>
-                      {service.title}
-                    </div>
+                    <div style={{ fontWeight: "bold" }}>{service.title}</div>
                     <div style={{ fontSize: "12px", color: "#888" }}>
                       {`Chi phí dự tính: ${formatCurrency(service.avgPrice)}`}
                     </div>
                   </div>
                 </div>
-              ),
-            }))}
-            filterOption={(input, option) =>
-              option.label.props.children[1].props.children[0]
-                .toLowerCase()
-                .includes(input.toLowerCase())
-            }
-          />
+              </Option>
+            ))}
+          </Select>
         </div>
       ),
     },

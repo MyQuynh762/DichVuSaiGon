@@ -10,31 +10,31 @@ const Advantages = () => {
       id: 1,
       icon: <BiRocket />,
       title: "Dịch Vụ Nhanh Chóng",
-      paragraph: "Đảm bảo dịch vụ nhanh chóng và đúng giờ",
+      paragraph: "Tra cứu dịch vụ gần bạn dễ dàng, trong tích tắc",
     },
     {
       id: 2,
       icon: <AiOutlineSync />,
       title: "Đổi Lịch Linh Hoạt",
-      paragraph: "Thay đổi lịch dịch vụ dễ dàng",
+      paragraph: "Tùy chọn ngày giờ sử dụng dịch vụ theo ý bạn",
     },
     {
       id: 3,
       icon: <GoCreditCard />,
-      title: "Thanh Toán An Toàn",
-      paragraph: "Hỗ trợ thanh toán trực tuyến an toàn",
+      title: "Thông Tin Minh Bạch",
+      paragraph: "Mô tả dịch vụ rõ ràng, đánh giá thật từ người dùng",
     },
     {
       id: 4,
       icon: <ImBubbles3 />,
       title: "Hỗ Trợ Khách Hàng 24/7",
-      paragraph: "Luôn sẵn sàng hỗ trợ bạn bất cứ lúc nào",
+      paragraph: "Luôn sẵn sàng giúp bạn mọi lúc",
     },
     {
       id: 5,
       icon: <ImGift />,
-      title: "Ưu Đãi Đặc Biệt",
-      paragraph: "Nhiều ưu đãi cho khách hàng thân thiết",
+      title: "Dịch Vụ Đa Dạng",
+      paragraph: "Từ vệ sinh, sửa chữa đến làm đẹp – đủ hết cho Sài Gòn",
     },
   ];
 

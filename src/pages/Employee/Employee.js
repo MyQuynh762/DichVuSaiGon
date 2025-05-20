@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Input, Button, message, Form } from "antd";
 import { registerSupplier } from "../../services/authService";
 
@@ -13,6 +13,7 @@ function Employee() {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false); // Add loading state
+  const fileInputRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -94,6 +95,9 @@ function Employee() {
           businessLicense: null,
           role: "supplier", // Reset role
         });
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       } else {
         message.error(response.message || "Đăng ký thất bại.");
       }
@@ -234,12 +238,14 @@ function Employee() {
             help={errors.businessLicense}
           >
             <Input
+              ref={fileInputRef}
               style={{ height: "40px" }}
               type="file"
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               onChange={handleFileChange}
               placeholder="Tải lên giấy phép kinh doanh"
             />
+
           </Form.Item>
 
           <Button
