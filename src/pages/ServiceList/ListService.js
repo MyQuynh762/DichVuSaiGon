@@ -113,7 +113,7 @@ function ListService() {
     );
 
 
-    const allServices = data.services || [];
+    const allServices = (data.services || []).filter(service => service.isActive !== false);
     setTotalServices(allServices.length);  // Set total services count
 
     // Filter services based on the selected filters

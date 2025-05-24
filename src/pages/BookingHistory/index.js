@@ -249,16 +249,13 @@ const BookingHistory = () => {
                   )}
                   {booking.status === "completed" && (
                     <>
-                      {!booking.feedbackExists && (
-                        <Button
-                          type="primary"
-                          icon={<StarOutlined />}
-                          onClick={() => handleRateService(booking)}
-                        >
-                          Đánh giá dịch vụ
-                        </Button>
-                      )}
-
+                      <Button
+                        type="primary"
+                        icon={<StarOutlined />}
+                        onClick={() => handleRateService(booking)}
+                      >
+                        Đánh giá dịch vụ
+                      </Button>
                     </>
                   )}
                 </div>
